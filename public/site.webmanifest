@@ -1,0 +1,21 @@
+{
+  "name": "Elite Diamond Portfolio",
+  "short_name": "Diamond Portfolio",
+  "description": "Luxury diamond collection and investment opportunities by Moksh P Mehta",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1f2937",
+  "theme_color": "#1f2937",
+  "icons": [
+    {
+      "src": "/diamond-favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    }
+  ]
+} 

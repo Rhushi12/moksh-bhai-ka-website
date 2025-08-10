@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EmailJS Test</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+</head>
+<body>
+    <h1>EmailJS Test</h1>
+    <button onclick="testEmailJS()">Test EmailJS</button>
+    <div id="result"></div>
+
+    <script>
+        // Initialize EmailJS
+        emailjs.init("cmOL68_fgLK7ESGWk");
+
+        async function testEmailJS() {
+            const serviceId = 'service_mxzer4f';
+            const templateId = 'template_9hcqh4n';
+            const userId = 'cmOL68_fgLK7ESGWk';
+
+            try {
+                console.log('Testing EmailJS...');
+                console.log('Service ID:', serviceId);
+                console.log('Template ID:', templateId);
+                console.log('User ID:', userId);
+
+                const result = await emailjs.send(
+                    serviceId,
+                    templateId,
+                    {
+                        email: 'test@example.com',
+                        otp: '123456'
+                    },
+                    userId
+                );
+
+                console.log('✅ Success:', result);
+                document.getElementById('result').innerHTML = '<p style="color: green;">✅ EmailJS test successful!</p>';
+            } catch (error) {
+                console.error('❌ Error:', error);
+                document.getElementById('result').innerHTML = `<p style="color: red;">❌ Error: ${error.text}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
