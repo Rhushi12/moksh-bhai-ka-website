@@ -1,33 +1,162 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, LogOut, MessageSquare, Home, Search } from 'lucide-react';
+import { Menu, X, LogOut, MessageSquare, Home, Search, Gem, Sparkles, Crown, Star, Zap, Clock, Scissors } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
+import { useFirebase } from '@/contexts/FirebaseContext';
 import { useNavigate } from 'react-router-dom';
 import ShinyText from './ShinyText';
 import './ShinyText.css';
+import { Category } from '@/lib/categoryServices';
 
 interface HeaderProps {
-  onCategorySelect: (category: string | null) => void;
-  selectedCategory: string | null;
   showHomeButton?: boolean;
   title?: string;
 }
 
-const categories = [
-  'Rough Diamonds',
-  'Polished Diamonds', 
-  'Colored Diamonds',
-  'Certified Diamonds',
-  'Investment Diamonds'
-];
+// Custom Diamond Icon Component
+const CustomDiamondIcon: React.FC<{ size?: number | string; className?: string }> = ({ size = 24, className = "" }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="square"
+      strokeLinejoin="miter"
+      role="img"
+      aria-label="Diamond"
+      className={className}
+    >
+      <path d="M7 2h10l5 6-10 14L2 8 7 2z" />
+      <path d="M2 8h20" />
+      <path d="M2 8h20" />
+      <path d="M7 2l5 6 5-6" />
+      <path d="M2 8l10 14 10-14" />
+      <path d="M12 8v14" />
+    </svg>
+  );
+};
 
-export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = false, title }: HeaderProps) => {
+// CVD Lab-Grown Diamond Icon
+const CVDLabDiamondIcon: React.FC<{ size?: number | string; className?: string }> = ({ size = 24, className = "" }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label="Lab-grown diamond with circuit nodes"
+      className={className}
+    >
+      <path d="M12 3L21 12L12 21L3 12Z"/>
+      <path d="M12 3L8 12L12 21M12 3L16 12"/>
+      <circle cx="4" cy="12" r="1"/>
+      <circle cx="20" cy="12" r="1"/>
+      <circle cx="12" cy="22" r="1"/>
+      <path d="M4 12h3M20 12h-3M12 22v-2"/>
+    </svg>
+  );
+};
+
+// Antique Diamond Icon
+const AntiqueDiamondIcon: React.FC<{ size?: number | string; className?: string }> = ({ size = 24, className = "" }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label="Antique diamond with crown"
+      className={className}
+    >
+      <path d="M6 6.5l2 2 2-3 2 3 2-2 2 2v1H6v-1z"/>
+      <circle cx="8" cy="6" r=".6"/>
+      <circle cx="12" cy="5" r=".6"/>
+      <circle cx="16" cy="6" r=".6"/>
+      <path d="M12 8L19 13L12 21L5 13z"/>
+      <path d="M12 8L8 13L12 21M12 8L16 13"/>
+    </svg>
+  );
+};
+
+// Antique Cutout Diamond Icon
+const AntiqueCutoutDiamondIcon: React.FC<{ size?: number | string; className?: string }> = ({ size = 24, className = "" }) => {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      role="img"
+      aria-label="Diamond with scissors for cutting"
+      className={className}
+    >
+      <path d="M12 3L21 12L12 21L3 12Z"/>
+      <path d="M12 3L8 12L12 21M12 3L16 12"/>
+      <path d="M6 6l3 3M18 6l-3 3"/>
+      <path d="M6 18l3-3M18 18l-3-3"/>
+    </svg>
+  );
+};
+
+// Icon mapping for category icons
+const getIconComponent = (iconName: string) => {
+  const iconMap: { [key: string]: any } = {
+    'gem': Gem,
+    'sparkles': Sparkles,
+    'clock': Clock,
+    'scissors': Scissors,
+    'star': Star,
+    'crown': Crown,
+    'zap': Zap,
+    'custom-diamond': CustomDiamondIcon,
+    'lab-diamond': CVDLabDiamondIcon,        // New CVD icon
+    'vintage-diamond': AntiqueDiamondIcon,   // New Antique icon
+    'cutout-diamond': AntiqueCutoutDiamondIcon // New Cutout icon
+  };
+  
+  return iconMap[iconName] || Gem;
+};
+
+// Local categories for fallback (not used anymore)
+// const localCategories = [
+//   'Natural Diamonds',
+//   'CVD Diamonds',
+//   'Antique Diamonds',
+//   'Antique Cutout',
+//   'Investment Diamonds'
+// ];
+
+export const Header = ({ showHomeButton = false, title }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const navigate = useNavigate();
   // Get authentication state and functions from the auth context
   // This allows the header to display dynamic user information and handle logout
   const { user, logout, getUserName } = useAuth();
+  // Get categories from Firebase context
+  const { categories } = useFirebase();
 
   // Handle escape key to close menu
   useEffect(() => {
@@ -75,35 +204,9 @@ export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = fa
     };
   }, []);
 
-  const handleCategoryClick = (category: string) => {
-    const newCategory = selectedCategory === category ? null : category;
-    onCategorySelect(newCategory);
-    setIsMenuOpen(false);
-    
-    // Scroll to showcase
-    const showcase = document.getElementById('diamond-showcase');
-    if (showcase) {
-      showcase.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  };
-
   const handleContactClick = () => {
     window.location.href = '/contact';
     setIsMenuOpen(false);
-  };
-
-  /**
-   * Handle logout - resets user to guest state
-   */
-  const handleLogout = () => {
-    logout();
-    setIsMenuOpen(false);
-  };
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      setIsMenuOpen(false);
-    }
   };
 
   const handleHomeClick = () => {
@@ -115,6 +218,26 @@ export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = fa
     navigate('/gallery');
     setIsMenuOpen(false);
   };
+
+  const handleCategoryClick = (category: Category) => {
+    setSelectedCategory(category.displayLabel);
+    navigate(`/gallery?category=${category.value}`);
+    setIsMenuOpen(false);
+  };
+
+  const handleBackdropClick = () => {
+    setIsMenuOpen(false);
+  };
+
+  /**
+   * Handle logout - resets user to guest state
+   */
+  const handleLogout = () => {
+    logout();
+    setIsMenuOpen(false);
+  };
+
+
 
   return (
     <>
@@ -170,15 +293,48 @@ export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = fa
             {/* Center - Site Title */}
             <div className="flex-1 text-center px-2">
               <ShinyText 
-                text="Moksh P Mehta"
+                text={selectedCategory || "Moksh P Mehta"}
                 disabled={false}
                 speed={4}
                 className="text-lg md:text-2xl lg:text-3xl font-playfair tracking-wide truncate"
               />
             </div>
 
-            {/* Right - Search, Menu Toggle and Home Button */}
+            {/* Right - Diamond Categories, Search, Menu Toggle and Home Button */}
             <div className="flex-1 flex justify-end items-center space-x-2">
+              {/* Diamond Category Logos */}
+              <div className="hidden md:flex items-center space-x-2 mr-4">
+                {categories && categories.length > 0 ? categories.map((category) => {
+                  const IconComponent = getIconComponent(category.icon);
+                  return (
+                    <Button
+                      key={String(category.id)}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleCategoryClick(category)}
+                      className={`p-2 rounded-lg transition-all duration-300 transform hover:scale-110 group ${
+                        selectedCategory === category.displayLabel 
+                          ? 'text-white shadow-lg' 
+                          : 'text-gray-300 hover:text-white hover:bg-gray-800'
+                      }`}
+                      style={{
+                        backgroundColor: selectedCategory === category.displayLabel ? category.color : 'transparent'
+                      }}
+                      aria-label={`View ${category.displayLabel}`}
+                    >
+                      <div className="relative">
+                        <IconComponent className="w-5 h-5" />
+                        {/* Hover effect */}
+                        <div 
+                          className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-20 transition-opacity duration-300 blur-sm"
+                          style={{ backgroundColor: category.color }}
+                        ></div>
+                      </div>
+                    </Button>
+                  );
+                }) : null}
+              </div>
+              
               <Button
                 variant="ghost"
                 size="sm"
@@ -217,7 +373,11 @@ export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = fa
       {isMenuOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
-          onClick={handleBackdropClick}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setIsMenuOpen(false);
+            }
+          }}
           aria-hidden="true"
         />
       )}
@@ -248,17 +408,46 @@ export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = fa
         {/* Panel Content */}
         <div className="p-4 md:p-6 overflow-y-auto h-full">
           <div className="space-y-4">
-            {/* Categories Section */}
+            {/* Diamond Categories Section */}
             <div>
-              <div className="text-sm text-gray-400 font-montserrat mb-3 font-medium">Categories</div>
+              <div className="text-sm text-gray-400 font-montserrat mb-3 font-medium">Diamond Categories</div>
               <div className="space-y-2">
-                {categories.map((category) => (
+                {categories && categories.length > 0 ? categories.map((category) => {
+                  const IconComponent = getIconComponent(category.icon);
+                  return (
+                    <button
+                      key={String(category.id)}
+                      onClick={() => handleCategoryClick(category)}
+                      className={`
+                        w-full text-left py-3 px-4 rounded-lg transition-all duration-200 font-montserrat text-base flex items-center gap-3
+                        ${selectedCategory === category.displayLabel
+                          ? 'text-white shadow-lg' 
+                          : 'text-gray-200 hover:text-gray-50 hover:bg-gray-800'
+                        }
+                      `}
+                      style={{
+                        backgroundColor: selectedCategory === category.displayLabel ? category.color : 'transparent'
+                      }}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                      {category.displayLabel}
+                    </button>
+                  );
+                }) : null}
+              </div>
+            </div>
+            
+            {/* Legacy Categories Section - Removed since we're using Firebase categories */}
+            {/* <div>
+              <div className="text-sm text-gray-400 font-montserrat mb-3 font-medium">Other Categories</div>
+              <div className="space-y-2">
+                {localCategories.map((category) => (
                   <button
                     key={category}
-                    onClick={() => handleCategoryClick(category)}
+                    onClick={() => {}} // Removed interactive category selection
                     className={`
                       w-full text-left py-3 px-4 rounded-lg transition-all duration-200 font-montserrat text-base
-                      ${selectedCategory === category 
+                      ${false // Removed selectedCategory logic
                         ? 'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-950 shadow-lg' 
                         : 'text-gray-200 hover:text-gray-50 hover:bg-gray-800'
                       }
@@ -268,7 +457,7 @@ export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = fa
                   </button>
                 ))}
               </div>
-            </div>
+            </div> */}
             
             {/* Divider */}
             <div className="border-t border-gray-700 pt-4">
@@ -310,10 +499,10 @@ export const Header = ({ onCategorySelect, selectedCategory, showHomeButton = fa
                 </div>
 
             {/* Clear Filter Option */}
-            {selectedCategory && (
+            {false && ( // Removed selectedCategory logic
               <div className="pt-3">
                 <button
-                  onClick={() => onCategorySelect(null)}
+                  onClick={() => {}} // Removed onCategorySelect(null)
                   className="text-sm text-gray-400 hover:text-gray-200 underline font-montserrat"
                 >
                   Clear category filter

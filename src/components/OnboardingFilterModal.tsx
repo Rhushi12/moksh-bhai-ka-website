@@ -1,24 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFilter } from '@/contexts/FilterContext';
+import { useFirebase } from '@/contexts/FirebaseContext';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { X, ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
-import {
-  DIAMOND_SHAPES,
-  WHITE_COLORS,
-  FANCY_COLORS,
-  CLARITY_OPTIONS,
-  CUT_OPTIONS,
-  SHAPE_CATEGORIES,
-  COLOR_CATEGORIES,
-  CLARITY_CATEGORIES,
-  CUT_CATEGORIES
-} from '@/data/filterOptions';
+import { generateDynamicFilterOptions, categorizeFilterOptions } from '@/lib/utils';
 
 // Diamond Shape Drawing Component
 const DiamondShapeDrawing: React.FC<{ shape: string; size?: number; className?: string }> = ({ 
@@ -263,7 +254,18 @@ export const OnboardingFilterModal: React.FC<OnboardingFilterModalProps> = ({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
+  const { diamonds: firebaseDiamonds } = useFirebase();
   const { applyOnboardingFilters, setOnboardingComplete } = useFilter();
+
+  // Generate dynamic filter options based on available diamonds
+  const dynamicOptions = useMemo(() => {
+    return generateDynamicFilterOptions(firebaseDiamonds || []);
+  }, [firebaseDiamonds]);
+
+  // Categorize the dynamic options
+  const categorizedOptions = useMemo(() => {
+    return categorizeFilterOptions(dynamicOptions);
+  }, [dynamicOptions]);
 
   // Add/remove modal-open class to body
   React.useEffect(() => {
@@ -470,7 +472,7 @@ export const OnboardingFilterModal: React.FC<OnboardingFilterModalProps> = ({
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(SHAPE_CATEGORIES).map(([category, shapes]) => (
+                  {Object.entries(categorizedOptions.shapeCategories).map(([category, shapes]) => (
                     <div key={category}>
                       <h4 className="text-sm font-medium text-gray-200 mb-4">{category}</h4>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -525,7 +527,10 @@ export const OnboardingFilterModal: React.FC<OnboardingFilterModalProps> = ({
                   
                   <TabsContent value="white" className="space-y-4">
                     <div className="grid grid-cols-4 gap-3">
-                      {WHITE_COLORS.map((color) => (
+                      {Object.entries(categorizedOptions.colorCategories)
+                        .filter(([category]) => category !== 'Fancy')
+                        .flatMap(([category, colors]) => colors)
+                        .map((color) => (
                         <Card
                           key={color}
                           className={`cursor-pointer transition-all duration-300 transform hover:scale-105 ${
@@ -551,7 +556,7 @@ export const OnboardingFilterModal: React.FC<OnboardingFilterModalProps> = ({
                   
                   <TabsContent value="fancy" className="space-y-4">
                     <div className="grid grid-cols-2 gap-3">
-                      {FANCY_COLORS.map((color) => (
+                      {(categorizedOptions.colorCategories['Fancy'] || []).map((color) => (
                         <Card
                           key={color}
                           className={`cursor-pointer transition-all duration-300 transform hover:scale-105 ${
@@ -590,7 +595,7 @@ export const OnboardingFilterModal: React.FC<OnboardingFilterModalProps> = ({
                   <div>
                     <h4 className="text-sm font-medium text-gray-200 mb-3">Clarity Grade</h4>
                     <div className="space-y-2">
-                      {Object.entries(CLARITY_CATEGORIES).map(([category, clarities]) => (
+                      {Object.entries(categorizedOptions.clarityCategories).map(([category, clarities]) => (
                         <div key={category}>
                           <h5 className="text-xs text-gray-400 mb-2">{category}</h5>
                           <div className="grid grid-cols-2 gap-2">
@@ -617,7 +622,7 @@ export const OnboardingFilterModal: React.FC<OnboardingFilterModalProps> = ({
                   <div>
                     <h4 className="text-sm font-medium text-gray-200 mb-3">Cut Grade</h4>
                     <div className="space-y-2">
-                      {Object.entries(CUT_CATEGORIES).map(([category, cuts]) => (
+                      {Object.entries(categorizedOptions.cutCategories).map(([category, cuts]) => (
                         <div key={category}>
                           <h5 className="text-xs text-gray-400 mb-2">{category}</h5>
                           <div className="grid grid-cols-2 gap-2">

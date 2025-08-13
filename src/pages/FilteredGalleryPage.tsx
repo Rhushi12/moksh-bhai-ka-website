@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+
 import { FilterPanel } from '@/components/FilterPanel';
 import { Header } from '@/components/Header';
 import { useFilter } from '@/contexts/FilterContext';
@@ -11,7 +12,8 @@ import { useFirebase } from '@/contexts/FirebaseContext';
 import { Diamond } from '@/data/diamonds';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { Filter, Heart, Eye, Share2, Download, Star, TrendingUp, Clock, Loader2, Search, X } from 'lucide-react';
+import { Filter, Heart, Eye, Share2, Download, Star, TrendingUp, Clock, Loader2, Search, X, Grid3X3, Plus, Sliders, List, CheckSquare, Settings, ChevronDown } from 'lucide-react';
+import { CategoryManagement } from '@/components/CategoryManagement';
 
 // Skeleton loader component
 const DiamondCardSkeleton: React.FC = () => (
@@ -72,13 +74,18 @@ export const FilteredGalleryPage: React.FC = () => {
   const { diamonds: firebaseDiamonds, isLoading, error } = useFirebase();
   const [savedDiamonds, setSavedDiamonds] = useState<Set<number>>(new Set());
   const [wishlistDiamonds, setWishlistDiamonds] = useState<Set<number>>(new Set());
-  const [sortBy, setSortBy] = useState<'price' | 'carat' | 'date' | 'popularity'>('price');
+  const [sortBy, setSortBy] = useState<'price' | 'carat' | 'date' | 'popularity' | 'shape' | 'clarity' | 'color'>('price');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [visibleCards, setVisibleCards] = useState<number>(8);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearchOpen, setIsSearchOpen] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedDiamonds, setSelectedDiamonds] = useState<Set<number>>(new Set());
+  const [isSelectMode, setIsSelectMode] = useState(false);
+  const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState(false);
+  const [isSortPanelOpen, setIsSortPanelOpen] = useState(false);
 
   // Add error boundary state
   const [hasError, setHasError] = useState<boolean>(false);
@@ -265,6 +272,18 @@ export const FilteredGalleryPage: React.FC = () => {
             aValue = a.carat || 0;
             bValue = b.carat || 0;
             break;
+          case 'shape':
+            aValue = (a.shape || '').toLowerCase();
+            bValue = (b.shape || '').toLowerCase();
+            break;
+          case 'clarity':
+            aValue = (a.clarity || '').toLowerCase();
+            bValue = (b.clarity || '').toLowerCase();
+            break;
+          case 'color':
+            aValue = (a.color || '').toLowerCase();
+            bValue = (b.color || '').toLowerCase();
+            break;
           case 'date':
             aValue = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
             bValue = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
@@ -393,7 +412,7 @@ export const FilteredGalleryPage: React.FC = () => {
   };
 
   // Handle sort change
-  const handleSortChange = (newSortBy: 'price' | 'carat' | 'date' | 'popularity') => {
+  const handleSortChange = (newSortBy: 'price' | 'carat' | 'date' | 'popularity' | 'shape' | 'clarity' | 'color') => {
     if (sortBy === newSortBy) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
     } else {
@@ -401,6 +420,46 @@ export const FilteredGalleryPage: React.FC = () => {
       setSortOrder('asc');
     }
   };
+
+  // Handle view mode change
+  const handleViewModeChange = () => {
+    setViewMode(viewMode === 'grid' ? 'list' : 'grid');
+  };
+
+  // Handle save search
+  const handleSaveSearch = () => {
+    toast({
+      title: 'Search Saved',
+      description: 'Your current search criteria has been saved.',
+    });
+  };
+
+  // Handle modify filters
+  const handleModifyFilters = () => {
+    toggleFilterPanel();
+  };
+
+  // Handle select all/none
+  const handleSelectAll = () => {
+    if (selectedDiamonds.size === sortedDiamonds.length) {
+      setSelectedDiamonds(new Set());
+    } else {
+      setSelectedDiamonds(new Set(sortedDiamonds.map(d => Number(d.id))));
+    }
+  };
+
+  // Handle individual diamond selection
+  const handleDiamondSelection = (diamondId: number) => {
+    const newSelected = new Set(selectedDiamonds);
+    if (newSelected.has(diamondId)) {
+      newSelected.delete(diamondId);
+    } else {
+      newSelected.add(diamondId);
+    }
+    setSelectedDiamonds(newSelected);
+  };
+
+
 
   const handleCategorySelect = (category: string | null) => {
     setSelectedCategory(category);
@@ -560,123 +619,394 @@ export const FilteredGalleryPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900">
       {/* Main Header */}
       <Header 
-        onCategorySelect={handleCategorySelect}
-        selectedCategory={selectedCategory}
         title="Diamond Gallery"
       />
 
       {/* Page Content Section */}
       <div className="pt-20">
+        {/* Action Buttons Section - Like the image */}
         {/* Results and Controls Bar */}
         <div className="border-b border-gray-800 bg-gray-900/30">
           <div className="container mx-auto px-4 py-4">
             <div className="flex items-center justify-between">
-              {/* Left Side - Results Count */}
-              <div className="flex items-center space-x-4">
-                <span className="text-gray-300 font-montserrat">
-                  Showing {sortedDiamonds.length} of {safeDiamonds.length} diamonds
-                </span>
-                {hasActiveFilters() && (
-                  <Badge variant="secondary" className="bg-gray-700 text-gray-50 border-gray-600">
-                    {getActiveFiltersCount()} filters active
-                  </Badge>
-                )}
+              {/* Left Side - Results Count and Search */}
+              <div className="flex flex-col space-y-3">
+                <div className="flex items-center space-x-4">
+                  <span className="text-gray-300 font-montserrat">
+                    Showing {sortedDiamonds.length} of {safeDiamonds.length} diamonds
+                  </span>
+                  {hasActiveFilters() && (
+                    <Badge variant="secondary" className="bg-gray-700 text-gray-50 border-gray-600">
+                      {getActiveFiltersCount()} filters active
+                    </Badge>
+                  )}
+                </div>
+                
+                {/* Search Box - Moved below the count as per image */}
+                <div className="flex items-center space-x-2">
+                  {isSearchOpen && (
+                    <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-1 border border-gray-600">
+                      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2">
+                        <Input
+                          type="text"
+                          placeholder="Search diamonds..."
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:outline-none w-48"
+                          autoFocus
+                        />
+                        <Button
+                          type="submit"
+                          variant="ghost"
+                          size="sm"
+                          className="text-gray-400 hover:text-white p-1"
+                        >
+                          <Search className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleSearchClear}
+                          className="text-gray-400 hover:text-white p-1"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </form>
+                    </div>
+                  )}
+                  
+                  {/* Search Toggle Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSearchToggle}
+                    className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
+                      isSearchOpen ? 'ring-2 ring-gray-50' : ''
+                    }`}
+                  >
+                    <Search className="h-4 w-4 mr-2" />
+                    Search
+                  </Button>
+                </div>
               </div>
               
-                             {/* Right Side - Sorting and Filter Controls */}
-               <div className="flex items-center space-x-2">
-                 {/* Search Box */}
-                 {isSearchOpen && (
-                   <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-1 border border-gray-600">
-                     <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2">
-                       <Input
-                         type="text"
-                         placeholder="Search diamonds..."
-                         value={searchQuery}
-                         onChange={(e) => setSearchQuery(e.target.value)}
-                         className="bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:outline-none w-48"
-                         autoFocus
-                       />
-                       <Button
-                         type="submit"
-                         variant="ghost"
-                         size="sm"
-                         className="text-gray-400 hover:text-white p-1"
-                       >
-                         <Search className="w-4 h-4" />
-                       </Button>
-                       <Button
-                         type="button"
-                         variant="ghost"
-                         size="sm"
-                         onClick={handleSearchClear}
-                         className="text-gray-400 hover:text-white p-1"
-                       >
-                         <X className="w-4 h-4" />
-                       </Button>
-                     </form>
-                   </div>
-                 )}
-                 
-                 {/* Search Toggle Button */}
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={handleSearchToggle}
-                   className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
-                     isSearchOpen ? 'ring-2 ring-gray-50' : ''
-                   }`}
-                 >
-                   <Search className="w-4 h-4" />
-                   Search
-                 </Button>
-                 
-                 {/* Sort Controls */}
-                 <div className="flex items-center space-x-2">
+              {/* Right Side - Action Buttons */}
+              <div className="flex flex-col items-end space-y-3">
+                {/* Top Row - Change View Button */}
+                <div className="flex items-center space-x-4">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleViewModeChange}
+                    className="flex flex-col items-center space-y-1 p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-200"
+                  >
+                    {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
+                    <span className="text-xs">Change View</span>
+                  </Button>
+                </div>
+                
+                                                  {/* Bottom Row - Sort and Filter Controls */}
+                 <div className="flex items-center space-x-3">
+                   {/* Sorting Button with Sliding Menu */}
                    <Button
                      variant="outline"
                      size="sm"
-                     onClick={() => handleSortChange('price')}
-                     className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 ${
-                       sortBy === 'price' ? 'ring-2 ring-gray-50' : ''
-                     }`}
+                     onClick={() => setIsSortPanelOpen(!isSortPanelOpen)}
+                     className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
                    >
-                     Price {sortBy === 'price' && (sortOrder === 'asc' ? '↑' : '↓')}
+                     <List className="h-4 w-4 mr-2" />
+                     {sortBy === 'price' && sortOrder === 'asc' && 'Price (Low to High)'}
+                     {sortBy === 'price' && sortOrder === 'desc' && 'Price (High to Low)'}
+                     {sortBy === 'carat' && sortOrder === 'asc' && 'Carat (Low to High)'}
+                     {sortBy === 'carat' && sortOrder === 'desc' && 'Carat (High to Low)'}
+                     {sortBy === 'shape' && sortOrder === 'asc' && 'Shape (A to Z)'}
+                     {sortBy === 'shape' && sortOrder === 'desc' && 'Shape (Z to A)'}
+                     {sortBy === 'clarity' && sortOrder === 'asc' && 'Clarity (A to Z)'}
+                     {sortBy === 'clarity' && sortOrder === 'desc' && 'Clarity (Z to A)'}
+                     {sortBy === 'color' && sortOrder === 'asc' && 'Color (A to Z)'}
+                     {sortBy === 'color' && sortOrder === 'desc' && 'Color (Z to A)'}
+                     {sortBy === 'date' && sortOrder === 'asc' && 'Date (Oldest First)'}
+                     {sortBy === 'date' && sortOrder === 'desc' && 'Date (Newest First)'}
+                     {sortBy === 'popularity' && 'Popularity'}
+                     <ChevronDown className="h-4 w-4 ml-2" />
                    </Button>
+                   
+                   {/* Filters Button */}
                    <Button
                      variant="outline"
                      size="sm"
-                     onClick={() => handleSortChange('carat')}
-                     className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 ${
-                       sortBy === 'carat' ? 'ring-2 ring-gray-50' : ''
-                     }`}
+                     onClick={toggleFilterPanel}
+                     className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
                    >
-                     Carat {sortBy === 'carat' && (sortOrder === 'asc' ? '↑' : '↓')}
-                   </Button>
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={() => handleSortChange('date')}
-                     className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 ${
-                       sortBy === 'date' ? 'ring-2 ring-gray-50' : ''
-                     }`}
-                   >
-                     Date {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+                     <Filter className="h-4 w-4 mr-2" />
+                     Filters
+                     {hasActiveFilters() && (
+                       <Badge variant="secondary" className="ml-2 bg-gray-600 text-white text-xs">
+                         {getActiveFiltersCount()}
+                       </Badge>
+                     )}
                    </Button>
                  </div>
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={toggleFilterPanel}
-                   className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
-                 >
-                   <Filter className="w-4 h-4" />
-                   Filters
-                 </Button>
-               </div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Sorting Panel - Sliding Menu */}
+        {isSortPanelOpen && (
+          <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm">
+            <div className="container mx-auto px-4 py-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-white">Sort Options</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSortPanelOpen(false)}
+                  className="text-gray-400 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+                {/* Price Sorting */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-300">Price</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={sortBy === 'price' && sortOrder === 'asc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('price');
+                        setSortOrder('asc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'price' && sortOrder === 'asc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Low to High
+                    </Button>
+                    <Button
+                      variant={sortBy === 'price' && sortOrder === 'desc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('price');
+                        setSortOrder('desc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'price' && sortOrder === 'desc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      High to Low
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Carat Sorting */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-300">Carat</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={sortBy === 'carat' && sortOrder === 'asc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('carat');
+                        setSortOrder('asc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'carat' && sortOrder === 'asc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Low to High
+                    </Button>
+                    <Button
+                      variant={sortBy === 'carat' && sortOrder === 'desc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('carat');
+                        setSortOrder('desc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'carat' && sortOrder === 'desc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      High to Low
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Shape Sorting */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-300">Shape</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={sortBy === 'shape' && sortOrder === 'asc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('shape');
+                        setSortOrder('asc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'shape' && sortOrder === 'asc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      A to Z
+                    </Button>
+                    <Button
+                      variant={sortBy === 'shape' && sortOrder === 'desc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('shape');
+                        setSortOrder('desc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'shape' && sortOrder === 'desc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Z to A
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Clarity Sorting */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-300">Clarity</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={sortBy === 'clarity' && sortOrder === 'asc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('clarity');
+                        setSortOrder('asc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'clarity' && sortOrder === 'asc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      A to Z
+                    </Button>
+                    <Button
+                      variant={sortBy === 'clarity' && sortOrder === 'desc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('clarity');
+                        setSortOrder('desc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'clarity' && sortOrder === 'desc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Z to A
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Color Sorting */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-300">Color</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={sortBy === 'color' && sortOrder === 'asc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('color');
+                        setSortOrder('asc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'color' && sortOrder === 'asc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      A to Z
+                    </Button>
+                    <Button
+                      variant={sortBy === 'color' && sortOrder === 'desc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('color');
+                        setSortOrder('desc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'color' && sortOrder === 'desc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Z to A
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Date Sorting */}
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium text-gray-300">Date</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={sortBy === 'date' && sortOrder === 'asc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('date');
+                        setSortOrder('asc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'date' && sortOrder === 'asc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-700 hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Oldest First
+                    </Button>
+                    <Button
+                      variant={sortBy === 'date' && sortOrder === 'desc' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('date');
+                        setSortOrder('desc');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full ${
+                        sortBy === 'date' && sortOrder === 'desc'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Newest First
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Diamond Cards Gallery View */}
         <div className="container mx-auto px-4 py-8">
@@ -692,6 +1022,25 @@ export const FilteredGalleryPage: React.FC = () => {
                     <CardContent className="p-0">
                       {/* Diamond Image */}
                       <div className="relative aspect-square bg-gradient-to-br from-gray-700 to-gray-800 rounded-t-lg overflow-hidden">
+                        {/* Selection Checkbox - Top Left */}
+                        <div className="absolute top-2 left-2 z-10">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDiamondSelection(Number(diamond.id));
+                            }}
+                            className={`w-8 h-8 p-0 rounded-full transition-all duration-200 ${
+                              selectedDiamonds.has(Number(diamond.id))
+                                ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
+                            }`}
+                          >
+                            <CheckSquare className="w-4 h-4" />
+                          </Button>
+                        </div>
+
                         <img
                           src={diamond.primaryImage || '/diamond-round.jpg'}
                           alt={`${diamond.shape || 'Diamond'} diamond`}
@@ -749,77 +1098,53 @@ export const FilteredGalleryPage: React.FC = () => {
 
                       {/* Diamond Details */}
                       <div className="p-4 space-y-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h3 className="font-semibold text-gray-100 text-lg">{diamond.shape || 'Diamond'}</h3>
-                          </div>
-                          <div className="flex space-x-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleShareDiamond(diamond);
-                              }}
-                              className="w-8 h-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
-                            >
-                              <Share2 className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleExportDiamond(diamond);
-                              }}
-                              className="w-8 h-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
-                            >
-                              <Download className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Diamond Specifications */}
+                        {/* Diamond Specifications - Like the image */}
                         <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span className="text-gray-400 text-sm">Carat</span>
-                            <span className="text-gray-100 font-medium">{diamond.carat || 0} ct</span>
+                          {/* First Line: Shape, Carat, Color, Clarity */}
+                          <div className="text-sm text-gray-100 font-medium">
+                            {diamond.shape || 'Round'} {diamond.carat || 0}ct {diamond.color || 'N/A'} {diamond.clarity || 'N/A'}
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400 text-sm">Color</span>
-                            <span className="text-gray-100 font-medium">{diamond.color || 'N/A'}</span>
+                          
+                          {/* Second Line: Cut, Polish, Symmetry, Fluorescence */}
+                          <div className="text-sm text-gray-300">
+                            {diamond.cut || 'N/A'}.{diamond.polish || 'N/A'}.{diamond.symmetry || 'N/A'}/{diamond.fluorescence || 'NONE'}
                           </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400 text-sm">Clarity</span>
-                            <span className="text-gray-100 font-medium">{diamond.clarity || 'N/A'}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-400 text-sm">Cut</span>
-                            <span className="text-gray-100 font-medium">{diamond.cut || 'N/A'}</span>
-                          </div>
-                        </div>
-
-                        {/* Price */}
-                        <div className="pt-2">
-                          <div className="text-2xl font-bold text-gray-100">
+                          
+                          {/* Third Line: Price */}
+                          <div className="text-lg font-bold text-gray-100">
                             {formatPrice(diamond.price || '0')}
                           </div>
+                          
+                          {/* Fourth Line: Total Price */}
                           <div className="text-sm text-gray-400">
-                            ${formatPrice(parseFloat((diamond.price || '0').replace(/[$,]/g, '')) / parseFloat((diamond.carat || 0).toString()))}/ct
+                            Total Price
                           </div>
                         </div>
 
                         {/* Action Buttons */}
-                        <div className="flex space-x-2 pt-2">
+                        <div className="flex items-center justify-between pt-2">
                           <Button
                             onClick={(e) => {
                               e.stopPropagation();
                               handleViewDiamond(diamond.id);
                             }}
-                            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+                            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 mr-2"
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             View Details
+                          </Button>
+                          
+                          {/* Three dots menu - Like the image */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Add more options menu here
+                            }}
+                            className="w-8 h-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
+                          >
+                            <span className="text-lg">⋯</span>
                           </Button>
                         </div>
                       </div>
@@ -880,6 +1205,12 @@ export const FilteredGalleryPage: React.FC = () => {
 
       {/* Filter Panel */}
       <FilterPanel />
+
+      {/* Category Management Modal */}
+      <CategoryManagement
+        isOpen={isCategoryManagementOpen}
+        onClose={() => setIsCategoryManagementOpen(false)}
+      />
     </div>
   );
 }; 

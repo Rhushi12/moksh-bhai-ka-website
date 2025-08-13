@@ -13,6 +13,7 @@
       "color": "D",
       "price": "$25,000",
       "bestseller": true,
+      "showInBanner": true,
       "uploadedAt": "2024-08-03T21:30:00Z",
       "uploadedBy": "manual"
     },
@@ -22,13 +23,14 @@
       "category": "Certified Diamonds",
       "shape": "Princess",
       "image": "/src/assets/diamond-princess.jpg",
-      "description": "An exquisite 2.8-carat princess cut diamond with perfect symmetry and exceptional clarity. GIA certified with ideal proportions for maximum brilliance.",
+      "description": "An exquisite 2.8-carat princess cut diamond with perfect symmetry and exceptional clarity. Features ideal proportions for maximum brilliance.",
       "carat": 2.8,
       "clarity": "VVS1",
       "cut": "Ideal",
       "color": "E",
       "price": "$18,500",
       "bestseller": false,
+      "showInBanner": true,
       "uploadedAt": "2024-08-03T21:30:00Z",
       "uploadedBy": "manual"
     },
@@ -44,7 +46,8 @@
       "cut": "Excellent",
       "color": "Fancy Pink",
       "price": "$35,000",
-      "bestseller": true,
+      "bestseller": false,
+      "showInBanner": true,
       "uploadedAt": "2024-08-03T21:30:00Z",
       "uploadedBy": "manual"
     },

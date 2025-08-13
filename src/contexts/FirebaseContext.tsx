@@ -5,14 +5,20 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 import { useDiamondsListener, db } from '@/lib/firebase';
 import { Diamond } from '@/data/diamonds';
 import { getDiamonds } from '@/data/diamonds'; // Import fallback data
+import { Category, getCategories, useCategoriesListener } from '@/lib/categoryServices';
 
 interface FirebaseContextType {
   diamonds: Diamond[];
+  categories: Category[];
   isLoading: boolean;
   error: string | null;
   isOffline: boolean;
   lastUpdated: Date | null;
   retryConnection: () => void;
+  // Category management functions
+  addCategory: (categoryData: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>) => Promise<void>;
+  updateCategory: (id: string, categoryData: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
 }
 
 const FirebaseContext = createContext<FirebaseContextType | undefined>(undefined);
@@ -25,6 +31,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
   console.log('🔥 FirebaseProvider: Component rendering');
   
   const [diamonds, setDiamonds] = useState<Diamond[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isOffline, setIsOffline] = useState(false);
@@ -33,18 +40,25 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
 
   // Function to load fallback data
   const loadFallbackData = async () => {
-    console.log('🔄 Loading fallback diamond data...');
+    console.log('🔄 Loading fallback data...');
     try {
+      // Load fallback diamonds
       const fallbackDiamonds = await getDiamonds();
       setDiamonds(fallbackDiamonds);
+      
+      // Load fallback categories
+      const fallbackCategories = await getCategories();
+      setCategories(fallbackCategories);
+      
       setIsOffline(true);
       setError('Using offline data - Firebase connection unavailable');
       setLastUpdated(new Date());
-      console.log('✅ Fallback data loaded successfully:', fallbackDiamonds.length, 'diamonds');
+      console.log('✅ Fallback data loaded successfully:', fallbackDiamonds.length, 'diamonds,', fallbackCategories.length, 'categories');
     } catch (fallbackError) {
       console.error('❌ Failed to load fallback data:', fallbackError);
-      setError('Unable to load diamond data - please check your connection');
+      setError('Unable to load data - please check your connection');
       setDiamonds([]);
+      setCategories([]);
     } finally {
       setIsLoading(false);
     }
@@ -77,6 +91,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     setIsOffline(false);
     
     let unsubscribe: (() => void) | null = null;
+    let categoriesUnsubscribe: (() => void) | null = null;
     let timeoutId: NodeJS.Timeout | null = null;
 
     try {
@@ -89,6 +104,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         loadFallbackData();
       }, 10000); // 10 second timeout
 
+      // Set up diamonds listener
       unsubscribe = useDiamondsListener((updatedDiamonds) => {
         console.log('🔥 FirebaseProvider: Received diamond updates:', updatedDiamonds.length, 'diamonds');
         
@@ -148,6 +164,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         setIsLoading(false);
       });
 
+      // Set up categories listener
+      categoriesUnsubscribe = useCategoriesListener((updatedCategories) => {
+        console.log('🔥 FirebaseProvider: Received category updates:', updatedCategories.length, 'categories');
+        setCategories(updatedCategories);
+      });
+
     } catch (error) {
       console.error('❌ Error setting up Firebase listener:', error);
       if (timeoutId) {
@@ -165,16 +187,79 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
       if (unsubscribe) {
         unsubscribe();
       }
+      if (categoriesUnsubscribe) {
+        categoriesUnsubscribe();
+      }
     };
   }, [retryCount]); // Re-run when retryCount changes
 
+  // Category management functions
+  const addCategory = async (categoryData: Omit<Category, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (!db) {
+      throw new Error('Firebase not available');
+    }
+
+    try {
+      const { collection, addDoc, Timestamp } = await import('firebase/firestore');
+      const categoriesRef = collection(db, 'categories');
+      
+      await addDoc(categoriesRef, {
+        ...categoryData,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('❌ Error adding category:', error);
+      throw error;
+    }
+  };
+
+  const updateCategory = async (id: string, categoryData: Partial<Category>) => {
+    if (!db) {
+      throw new Error('Firebase not available');
+    }
+
+    try {
+      const { doc, updateDoc, Timestamp } = await import('firebase/firestore');
+      const categoryRef = doc(db, 'categories', id);
+      
+      await updateDoc(categoryRef, {
+        ...categoryData,
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('❌ Error updating category:', error);
+      throw error;
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    if (!db) {
+      throw new Error('Firebase not available');
+    }
+
+    try {
+      const { doc, deleteDoc } = await import('firebase/firestore');
+      const categoryRef = doc(db, 'categories', id);
+      
+      await deleteDoc(categoryRef);
+    } catch (error) {
+      console.error('❌ Error deleting category:', error);
+      throw error;
+    }
+  };
+
   const value: FirebaseContextType = {
     diamonds,
+    categories,
     isLoading,
     error,
     isOffline,
     lastUpdated,
-    retryConnection
+    retryConnection,
+    addCategory,
+    updateCategory,
+    deleteCategory
   };
 
   return (

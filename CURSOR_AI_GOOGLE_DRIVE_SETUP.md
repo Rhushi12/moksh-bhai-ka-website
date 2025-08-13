@@ -272,3 +272,6 @@ This solution will **eliminate your 1MB Firestore limit** and **save you money**
 
 
 
+
+
+

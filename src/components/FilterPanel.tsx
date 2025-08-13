@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useFilter } from '@/contexts/FilterContext';
+import { useFirebase } from '@/contexts/FirebaseContext';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,19 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { X, RotateCcw, Filter, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import {
-  DIAMOND_SHAPES,
-  WHITE_COLORS,
-  FANCY_COLORS,
-  CLARITY_OPTIONS,
-  CUT_OPTIONS,
-  SHAPE_CATEGORIES,
-  COLOR_CATEGORIES,
-  CLARITY_CATEGORIES,
-  CUT_CATEGORIES,
-  CARAT_RANGE_PRESETS,
-  PRICE_RANGE_PRESETS
-} from '@/data/filterOptions';
+import { generateDynamicFilterOptions, categorizeFilterOptions } from '@/lib/utils';
 
 export const FilterPanel: React.FC = () => {
   const {
@@ -44,11 +33,22 @@ export const FilterPanel: React.FC = () => {
     getActiveFiltersCount
   } = useFilter();
   
+  const { diamonds: firebaseDiamonds } = useFirebase();
   const { toast } = useToast();
   const [localCaratRange, setLocalCaratRange] = useState(state.carat_range);
   const [localPriceRange, setLocalPriceRange] = useState(state.price_range);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set(['shape']));
+
+  // Generate dynamic filter options based on available diamonds
+  const dynamicOptions = useMemo(() => {
+    return generateDynamicFilterOptions(firebaseDiamonds || []);
+  }, [firebaseDiamonds]);
+
+  // Categorize the dynamic options
+  const categorizedOptions = useMemo(() => {
+    return categorizeFilterOptions(dynamicOptions);
+  }, [dynamicOptions]);
 
   // Track changes to show unsaved changes indicator
   useEffect(() => {
@@ -58,6 +58,16 @@ export const FilterPanel: React.FC = () => {
     
     setHasUnsavedChanges(hasChanges);
   }, [localCaratRange, localPriceRange, state.carat_range, state.price_range]);
+
+  // Update local ranges when dynamic options change
+  useEffect(() => {
+    if (dynamicOptions.caratRange) {
+      setLocalCaratRange(dynamicOptions.caratRange);
+    }
+    if (dynamicOptions.priceRange) {
+      setLocalPriceRange(dynamicOptions.priceRange);
+    }
+  }, [dynamicOptions]);
 
   // Handle shape selection
   const handleShapeToggle = (shape: string) => {
@@ -191,8 +201,8 @@ export const FilterPanel: React.FC = () => {
   // Handle reset all filters
   const handleResetAllFilters = () => {
     resetAllFilters();
-    setLocalCaratRange({ min: 0, max: 50 });
-    setLocalPriceRange({ min: 0, max: 1000000 });
+    setLocalCaratRange(dynamicOptions.caratRange || { min: 0, max: 50 });
+    setLocalPriceRange(dynamicOptions.priceRange || { min: 0, max: 1000000 });
     setExpandedSections(new Set(['shape']));
     toast({
       title: 'Filters reset',
@@ -221,6 +231,47 @@ export const FilterPanel: React.FC = () => {
     }).format(value);
   };
 
+  // Generate carat presets based on available range
+  const generateCaratPresets = () => {
+    const { min, max } = dynamicOptions.caratRange;
+    const range = max - min;
+    
+    if (range <= 1) return [];
+    
+    const presets = [];
+    if (range >= 0.5) presets.push({ label: `Under ${(min + 0.5).toFixed(1)} carats`, min, max: min + 0.5 });
+    if (range >= 1) presets.push({ label: `${(min + 0.5).toFixed(1)}-${(min + 1.5).toFixed(1)} carats`, min: min + 0.5, max: min + 1.5 });
+    if (range >= 2) presets.push({ label: `${(min + 1.5).toFixed(1)}-${(min + 3.5).toFixed(1)} carats`, min: min + 1.5, max: min + 3.5 });
+    if (range >= 5) presets.push({ label: `${(min + 3.5).toFixed(1)}-${(min + 8.5).toFixed(1)} carats`, min: min + 3.5, max: min + 8.5 });
+    if (range >= 10) presets.push({ label: `Over ${(min + 8.5).toFixed(1)} carats`, min: min + 8.5, max });
+    
+    return presets;
+  };
+
+  // Generate price presets based on available range
+  const generatePricePresets = () => {
+    const { min, max } = dynamicOptions.priceRange;
+    const range = max - min;
+    
+    if (range <= 1000) return [];
+    
+    const presets = [];
+    if (range >= 1000) presets.push({ label: `Under $${(min + 1000).toLocaleString()}`, min, max: min + 1000 });
+    if (range >= 5000) presets.push({ label: `$${(min + 1000).toLocaleString()} - $${(min + 5000).toLocaleString()}`, min: min + 1000, max: min + 5000 });
+    if (range >= 10000) presets.push({ label: `$${(min + 5000).toLocaleString()} - $${(min + 10000).toLocaleString()}`, min: min + 5000, max: min + 10000 });
+    if (range >= 25000) presets.push({ label: `$${(min + 10000).toLocaleString()} - $${(min + 25000).toLocaleString()}`, min: min + 10000, max: min + 25000 });
+    if (range >= 50000) presets.push({ label: `$${(min + 25000).toLocaleString()} - $${(min + 50000).toLocaleString()}`, min: min + 25000, max: min + 50000 });
+    if (range >= 100000) presets.push({ label: `$${(min + 50000).toLocaleString()} - $${(min + 100000).toLocaleString()}`, min: min + 50000, max: min + 100000 });
+    if (range >= 100000) presets.push({ label: `Over $${(min + 100000).toLocaleString()}`, min: min + 100000, max });
+    
+    return presets;
+  };
+
+  // Don't render if no diamonds are available
+  if (!firebaseDiamonds || firebaseDiamonds.length === 0) {
+    return null;
+  }
+
   return (
     <Sheet open={state.is_filter_panel_open} onOpenChange={toggleFilterPanel}>
       <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-gray-900 border-gray-700">
@@ -229,6 +280,9 @@ export const FilterPanel: React.FC = () => {
             <SheetTitle className="text-gray-50 flex items-center">
               <Filter className="h-5 w-5 mr-2" />
               Filters
+              <Badge variant="secondary" className="ml-2 bg-blue-600 text-white">
+                {firebaseDiamonds.length} diamonds
+              </Badge>
             </SheetTitle>
             <div className="flex items-center space-x-2">
               {hasActiveFilters() && (
@@ -263,184 +317,357 @@ export const FilterPanel: React.FC = () => {
 
         <div className="py-4 space-y-6 max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar">
           {/* Shape Filter */}
-          <div className="space-y-4">
-            <button
-              onClick={() => toggleSection('shape')}
-              className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
-            >
-              <h3 className="text-sm font-medium text-gray-200">Shape</h3>
-              {expandedSections.has('shape') ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              )}
-            </button>
-            
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              expandedSections.has('shape') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-            }`}>
-              <div className="space-y-3 pl-3">
-                {Object.entries(SHAPE_CATEGORIES).map(([category, shapes]) => (
-                  <div key={category}>
-                    <h4 className="text-sm font-medium text-gray-200 mb-2">{category}</h4>
-                    <div className="grid grid-cols-2 gap-2">
-                      {shapes.map((shape) => (
-                        <div key={shape} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`shape-${shape}`}
-                            checked={state.shape.includes(shape)}
-                            onCheckedChange={() => handleShapeToggle(shape)}
-                            className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
-                          />
-                          <Label htmlFor={`shape-${shape}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
-                            {shape}
-                          </Label>
-                        </div>
-                      ))}
+          {dynamicOptions.shapes.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => toggleSection('shape')}
+                className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                <h3 className="text-sm font-medium text-gray-200">Shape</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    {dynamicOptions.shapes.length} available
+                  </Badge>
+                  {expandedSections.has('shape') ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  )}
+                </div>
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedSections.has('shape') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-3 pl-3">
+                  {Object.entries(categorizedOptions.shapeCategories).map(([category, shapes]) => (
+                    <div key={category}>
+                      <h4 className="text-sm font-medium text-gray-200 mb-2">{category}</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {shapes.map((shape) => (
+                          <div key={shape} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`shape-${shape}`}
+                              checked={state.shape.includes(shape)}
+                              onCheckedChange={() => handleShapeToggle(shape)}
+                              className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                            />
+                            <Label htmlFor={`shape-${shape}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                              {shape}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Color Filter */}
-          <div className="space-y-4">
-            <button
-              onClick={() => toggleSection('color')}
-              className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
-            >
-              <h3 className="text-sm font-medium text-gray-200">Color</h3>
-              {expandedSections.has('color') ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              )}
-            </button>
-            
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              expandedSections.has('color') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-            }`}>
-              <div className="space-y-3 pl-3">
-                <Tabs defaultValue="white" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-700 border-gray-600">
-                    <TabsTrigger value="white" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">White</TabsTrigger>
-                    <TabsTrigger value="fancy" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Fancy</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="white" className="space-y-2">
-                    <div className="grid grid-cols-3 gap-2">
-                      {WHITE_COLORS.map((color) => (
-                        <div key={color} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`color-${color}`}
-                            checked={state.color.includes(color)}
-                            onCheckedChange={() => handleColorToggle(color)}
-                            className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
-                          />
-                          <Label htmlFor={`color-${color}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
-                            {color}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="fancy" className="space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      {FANCY_COLORS.map((color) => (
-                        <div key={color} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`color-${color}`}
-                            checked={state.color.includes(color)}
-                            onCheckedChange={() => handleColorToggle(color)}
-                            className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
-                          />
-                          <Label htmlFor={`color-${color}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
-                            {color}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
+          {dynamicOptions.colors.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => toggleSection('color')}
+                className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                <h3 className="text-sm font-medium text-gray-200">Color</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    {dynamicOptions.colors.length} available
+                  </Badge>
+                  {expandedSections.has('color') ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  )}
+                </div>
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedSections.has('color') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-3 pl-3">
+                  <Tabs defaultValue="white" className="w-full">
+                    <TabsList className="grid w-full grid-cols-2 bg-gray-700 border-gray-600">
+                      <TabsTrigger value="white" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">White</TabsTrigger>
+                      <TabsTrigger value="fancy" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Fancy</TabsTrigger>
+                    </TabsList>
+                    
+                    <TabsContent value="white" className="space-y-2">
+                      <div className="grid grid-cols-3 gap-2">
+                        {Object.entries(categorizedOptions.colorCategories)
+                          .filter(([category]) => category !== 'Fancy')
+                          .flatMap(([category, colors]) => colors)
+                          .map((color) => (
+                            <div key={color} className="flex items-center space-x-2">
+                              <Checkbox
+                                id={`color-${color}`}
+                                checked={state.color.includes(color)}
+                                onCheckedChange={() => handleColorToggle(color)}
+                                className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                              />
+                              <Label htmlFor={`color-${color}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                                {color}
+                              </Label>
+                            </div>
+                          ))}
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="fancy" className="space-y-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        {(categorizedOptions.colorCategories['Fancy'] || []).map((color) => (
+                          <div key={color} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`color-${color}`}
+                              checked={state.color.includes(color)}
+                              onCheckedChange={() => handleColorToggle(color)}
+                              className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                            />
+                            <Label htmlFor={`color-${color}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                              {color}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Clarity Filter */}
-          <div className="space-y-4">
-            <button
-              onClick={() => toggleSection('clarity')}
-              className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
-            >
-              <h3 className="text-sm font-medium text-gray-200">Clarity</h3>
-              {expandedSections.has('clarity') ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              )}
-            </button>
-            
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              expandedSections.has('clarity') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-            }`}>
-              <div className="space-y-3 pl-3">
-                <div className="grid grid-cols-2 gap-2">
-                  {CLARITY_OPTIONS.map((clarity) => (
-                    <div key={clarity} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`clarity-${clarity}`}
-                        checked={state.clarity.includes(clarity)}
-                        onCheckedChange={() => handleClarityToggle(clarity)}
-                        className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
-                      />
-                      <Label htmlFor={`clarity-${clarity}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
-                        {clarity}
-                      </Label>
+          {dynamicOptions.clarities.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => toggleSection('clarity')}
+                className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                <h3 className="text-sm font-medium text-gray-200">Clarity</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    {dynamicOptions.clarities.length} available
+                  </Badge>
+                  {expandedSections.has('clarity') ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  )}
+                </div>
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedSections.has('clarity') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-3 pl-3">
+                  {Object.entries(categorizedOptions.clarityCategories).map(([category, clarities]) => (
+                    <div key={category}>
+                      <h4 className="text-sm font-medium text-gray-200 mb-2">{category}</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {clarities.map((clarity) => (
+                          <div key={clarity} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`clarity-${clarity}`}
+                              checked={state.clarity.includes(clarity)}
+                              onCheckedChange={() => handleClarityToggle(clarity)}
+                              className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                            />
+                            <Label htmlFor={`clarity-${clarity}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                              {clarity}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Cut Filter */}
-          <div className="space-y-4">
-            <button
-              onClick={() => toggleSection('cut')}
-              className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
-            >
-              <h3 className="text-sm font-medium text-gray-200">Cut</h3>
-              {expandedSections.has('cut') ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              )}
-            </button>
-            
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
-              expandedSections.has('cut') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
-            }`}>
-              <div className="space-y-3 pl-3">
-                <div className="grid grid-cols-2 gap-2">
-                  {CUT_OPTIONS.map((cut) => (
-                    <div key={cut} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`cut-${cut}`}
-                        checked={state.cut.includes(cut)}
-                        onCheckedChange={() => handleCutToggle(cut)}
-                        className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
-                      />
-                      <Label htmlFor={`cut-${cut}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
-                        {cut}
-                      </Label>
+          {dynamicOptions.cuts.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => toggleSection('cut')}
+                className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                <h3 className="text-sm font-medium text-gray-200">Cut</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    {dynamicOptions.cuts.length} available
+                  </Badge>
+                  {expandedSections.has('cut') ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  )}
+                </div>
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedSections.has('cut') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-3 pl-3">
+                  {Object.entries(categorizedOptions.cutCategories).map(([category, cuts]) => (
+                    <div key={category}>
+                      <h4 className="text-sm font-medium text-gray-200 mb-2">{category}</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        {cuts.map((cut) => (
+                          <div key={cut} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={`cut-${cut}`}
+                              checked={state.cut.includes(cut)}
+                              onCheckedChange={() => handleCutToggle(cut)}
+                              className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                            />
+                            <Label htmlFor={`cut-${cut}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                              {cut}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   ))}
                 </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Growth Type Filter */}
+          {dynamicOptions.growthTypes.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => toggleSection('growth_type')}
+                className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                <h3 className="text-sm font-medium text-gray-200">Growth Type</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    {dynamicOptions.growthTypes.length} available
+                  </Badge>
+                  {expandedSections.has('growth_type') ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  )}
+                </div>
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedSections.has('growth_type') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-3 pl-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    {dynamicOptions.growthTypes.map((type) => (
+                      <div key={type} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`growth-type-${type}`}
+                          checked={state.growth_type.includes(type)}
+                          onCheckedChange={() => handleGrowthTypeToggle(type)}
+                          className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                        />
+                        <Label htmlFor={`growth-type-${type}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                          {type}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Location Filter */}
+          {dynamicOptions.locations.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => toggleSection('location')}
+                className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                <h3 className="text-sm font-medium text-gray-200">Location</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    {dynamicOptions.locations.length} available
+                  </Badge>
+                  {expandedSections.has('location') ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  )}
+                </div>
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedSections.has('location') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-3 pl-3">
+                  <div className="grid grid-cols-1 gap-2">
+                    {dynamicOptions.locations.map((location) => (
+                      <div key={location} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`location-${location}`}
+                          checked={state.location.includes(location)}
+                          onCheckedChange={() => handleLocationToggle(location)}
+                          className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                        />
+                        <Label htmlFor={`location-${location}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                          {location}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Supplier Filter */}
+          {dynamicOptions.suppliers.length > 0 && (
+            <div className="space-y-4">
+              <button
+                onClick={() => toggleSection('supplier')}
+                className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
+              >
+                <h3 className="text-sm font-medium text-gray-200">Supplier</h3>
+                <div className="flex items-center space-x-2">
+                  <Badge variant="outline" className="text-xs">
+                    {dynamicOptions.suppliers.length} available
+                  </Badge>
+                  {expandedSections.has('supplier') ? (
+                    <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  ) : (
+                    <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                  )}
+                </div>
+              </button>
+              
+              <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedSections.has('supplier') ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}>
+                <div className="space-y-3 pl-3">
+                  <div className="grid grid-cols-1 gap-2">
+                    {dynamicOptions.suppliers.map((supplier) => (
+                      <div key={supplier} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`supplier-${supplier}`}
+                          checked={state.supplier.includes(supplier)}
+                          onCheckedChange={() => handleSupplierToggle(supplier)}
+                          className="border-gray-600 data-[state=checked]:bg-gray-50 data-[state=checked]:border-gray-50 transition-all duration-200 transform hover:scale-105"
+                        />
+                        <Label htmlFor={`supplier-${supplier}`} className="text-sm text-gray-200 cursor-pointer hover:text-gray-100 transition-colors duration-200">
+                          {supplier}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Carat Range */}
           <div className="space-y-4">
@@ -449,11 +676,16 @@ export const FilterPanel: React.FC = () => {
               className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
             >
               <h3 className="text-sm font-medium text-gray-200">Carat Range</h3>
-              {expandedSections.has('carat') ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              )}
+              <div className="flex items-center space-x-2">
+                <Badge variant="outline" className="text-xs">
+                  {dynamicOptions.caratRange.min.toFixed(1)} - {dynamicOptions.caratRange.max.toFixed(1)} ct
+                </Badge>
+                {expandedSections.has('carat') ? (
+                  <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                )}
+              </div>
             </button>
             
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -466,8 +698,8 @@ export const FilterPanel: React.FC = () => {
                     <Slider
                       value={[localCaratRange.min, localCaratRange.max]}
                       onValueChange={([min, max]) => setLocalCaratRange({ min, max })}
-                      max={50}
-                      min={0}
+                      max={dynamicOptions.caratRange.max}
+                      min={dynamicOptions.caratRange.min}
                       step={0.1}
                       className="w-full"
                     />
@@ -488,7 +720,7 @@ export const FilterPanel: React.FC = () => {
                 <div className="space-y-2">
                   <Label className="text-sm text-gray-200">Quick Presets</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {CARAT_RANGE_PRESETS.map((preset) => (
+                    {generateCaratPresets().map((preset) => (
                       <Button
                         key={preset.label}
                         variant="outline"
@@ -512,11 +744,16 @@ export const FilterPanel: React.FC = () => {
               className="flex items-center justify-between w-full text-left p-3 bg-gray-800 rounded-lg hover:bg-gray-700 transition-all duration-200 transform hover:scale-[1.02]"
             >
               <h3 className="text-sm font-medium text-gray-200">Price Range</h3>
-              {expandedSections.has('price') ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
-              )}
+              <div className="flex items-center space-x-2">
+                <Badge variant="outline" className="text-xs">
+                  {formatPrice(dynamicOptions.priceRange.min)} - {formatPrice(dynamicOptions.priceRange.max)}
+                </Badge>
+                {expandedSections.has('price') ? (
+                  <ChevronUp className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-400 transition-transform duration-200" />
+                )}
+              </div>
             </button>
             
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${
@@ -539,8 +776,8 @@ export const FilterPanel: React.FC = () => {
                     <Slider
                       value={[localPriceRange.min, localPriceRange.max]}
                       onValueChange={([min, max]) => setLocalPriceRange({ min, max })}
-                      max={1000000}
-                      min={0}
+                      max={dynamicOptions.priceRange.max}
+                      min={dynamicOptions.priceRange.min}
                       step={1000}
                       className="w-full"
                     />
@@ -561,7 +798,7 @@ export const FilterPanel: React.FC = () => {
                 <div className="space-y-2">
                   <Label className="text-sm text-gray-200">Quick Presets</Label>
                   <div className="grid grid-cols-1 gap-2">
-                    {PRICE_RANGE_PRESETS.map((preset) => (
+                    {generatePricePresets().map((preset) => (
                       <Button
                         key={preset.label}
                         variant="outline"
@@ -578,8 +815,6 @@ export const FilterPanel: React.FC = () => {
             </div>
           </div>
         </div>
-
-
       </SheetContent>
     </Sheet>
   );

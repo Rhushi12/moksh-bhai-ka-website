@@ -12,6 +12,7 @@ export interface Diamond {
   primaryVideoRef?: string; // Reference to primary video document ID
   showVideoInGallery?: boolean; // Whether to show video in gallery
   showVideoOnHomepage?: boolean; // Whether to show video on homepage
+  showInBanner?: boolean; // Whether to show in banner advertisement
   
   description: string;
   carat: number;
@@ -33,8 +34,7 @@ export interface Diamond {
   growth_type?: 'Natural' | 'Lab Grown' | 'CVD' | 'HPHT' | 'Mixed';
   location?: string;
   supplier?: string;
-  certification?: 'GIA' | 'IGI' | 'AGS' | 'HRD' | 'None';
-  certification_number?: string;
+
   depth_percentage?: number;
   table_percentage?: number;
   crown_height?: number;
@@ -84,14 +84,14 @@ diamonds = [
       bestseller: true,
       showOnIndex: true,
       showInGallery: true,
+      showInBanner: true,
       polish: 'Excellent',
       symmetry: 'Excellent',
       fluorescence: 'None',
       growth_type: 'Natural',
       location: 'Antwerp, Belgium',
       supplier: 'De Beers',
-      certification: 'GIA',
-      certification_number: '1234567890',
+
       depth_percentage: 62.5,
       table_percentage: 57.0,
       crown_height: 16.5,
@@ -109,7 +109,7 @@ diamonds = [
         '/diamond-round.jpg',
         '/diamond-round.jpg'
       ],
-      description: 'An exquisite 2.8-carat princess cut diamond with perfect symmetry and exceptional clarity. GIA certified with ideal proportions for maximum brilliance.',
+      description: 'An exquisite 2.8-carat princess cut diamond with perfect symmetry and exceptional clarity. Features ideal proportions for maximum brilliance.',
       carat: 2.8,
       clarity: 'VVS1',
       cut: 'Ideal',
@@ -119,14 +119,14 @@ diamonds = [
       bestseller: false,
       showOnIndex: true,
       showInGallery: true,
+      showInBanner: true,
       polish: 'Excellent',
       symmetry: 'Excellent',
       fluorescence: 'Faint',
       growth_type: 'Natural',
       location: 'Mumbai, India',
       supplier: 'Alrosa',
-      certification: 'GIA',
-      certification_number: '1234567891',
+
       depth_percentage: 74.2,
       table_percentage: 68.0,
       crown_height: 12.5,
@@ -154,14 +154,14 @@ diamonds = [
       bestseller: true,
       showOnIndex: true,
       showInGallery: true,
+      showInBanner: true,
       polish: 'Excellent',
       symmetry: 'Excellent',
       fluorescence: 'Medium',
       growth_type: 'Natural',
       location: 'New York, USA',
       supplier: 'Rio Tinto',
-      certification: 'GIA',
-      certification_number: '1234567892',
+
       depth_percentage: 61.8,
       table_percentage: 58.0,
       crown_height: 15.2,
@@ -195,8 +195,7 @@ diamonds = [
       growth_type: 'Natural',
       location: 'Tel Aviv, Israel',
       supplier: 'Petra Diamonds',
-      certification: 'IGI',
-      certification_number: '1234567893',
+
       depth_percentage: 67.5,
       table_percentage: 65.0,
       crown_height: 14.8,
@@ -230,8 +229,7 @@ diamonds = [
       growth_type: 'Natural',
       location: 'Hong Kong',
       supplier: 'Lucara Diamond',
-      certification: 'GIA',
-      certification_number: '1234567894',
+
       depth_percentage: 63.2,
       table_percentage: 59.0,
       crown_height: 16.8,
@@ -265,8 +263,7 @@ diamonds = [
       growth_type: 'Natural',
       location: 'Dubai, UAE',
       supplier: 'Dominion Diamond',
-      certification: 'GIA',
-      certification_number: '1234567895',
+
       depth_percentage: 64.8,
       table_percentage: 56.0,
       crown_height: 17.2,
@@ -300,8 +297,7 @@ diamonds = [
       growth_type: 'Natural',
       location: 'London, UK',
       supplier: 'Stornoway Diamond',
-      certification: 'GIA',
-      certification_number: '1234567896',
+
       depth_percentage: 61.5,
       table_percentage: 58.5,
       crown_height: 15.8,
@@ -335,8 +331,7 @@ diamonds = [
       growth_type: 'Natural',
       location: 'Zurich, Switzerland',
       supplier: 'Mountain Province Diamonds',
-      certification: 'GIA',
-      certification_number: '1234567897',
+
       depth_percentage: 62.0,
       table_percentage: 57.5,
       crown_height: 16.0,

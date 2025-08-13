@@ -24,7 +24,8 @@ import {
   Mail,
   MapPin,
   Play,
-  Pause
+  Pause,
+  MessageCircle
 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 
@@ -189,13 +190,7 @@ export const DiamondDetailPage: React.FC = () => {
     });
   };
 
-  // Handle view certificate
-  const handleViewCertificate = () => {
-    toast({
-      title: 'Certificate Viewer',
-      description: 'Certificate viewer would open here in a real application.',
-    });
-  };
+
 
   // Handle schedule viewing
   const handleScheduleViewing = () => {
@@ -599,9 +594,8 @@ export const DiamondDetailPage: React.FC = () => {
               </CardHeader>
               <CardContent className="pb-8">
                 <Tabs defaultValue="details" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3 bg-gray-700 border-gray-600">
+                  <TabsList className="grid w-full grid-cols-2 bg-gray-700 border-gray-600">
                     <TabsTrigger value="details" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Details</TabsTrigger>
-                    <TabsTrigger value="certificate" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Certificate</TabsTrigger>
                     <TabsTrigger value="origin" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Origin</TabsTrigger>
                   </TabsList>
                   
@@ -628,12 +622,7 @@ export const DiamondDetailPage: React.FC = () => {
                     </div>
                   </TabsContent>
                   
-                  <TabsContent value="certificate" className="space-y-4 mt-4 pb-4">
-                    <div className="text-center py-8">
-                      <Eye className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-300">Certificate details would be displayed here</p>
-                    </div>
-                  </TabsContent>
+
                   
                   <TabsContent value="origin" className="space-y-4 mt-4 pb-4">
                     <div className="space-y-4">
@@ -670,13 +659,7 @@ export const DiamondDetailPage: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-3">
-                <Button
-                  onClick={handleViewCertificate}
-                  className="bg-gray-700 text-white hover:bg-gray-600 transition-all duration-200 transform hover:scale-105"
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Certificate
-                </Button>
+
                 <Button
                   variant="outline"
                   onClick={handleScheduleViewing}
@@ -686,12 +669,18 @@ export const DiamondDetailPage: React.FC = () => {
                   Schedule Viewing
                 </Button>
                 <Button
-                  variant="outline"
-                  onClick={handleContactExpert}
-                  className="text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105"
+                  onClick={() => window.location.href = 'tel:+919106338340'}
+                  className="bg-green-600 hover:bg-green-700 text-white transition-all duration-200 transform hover:scale-105"
                 >
-                  <User className="h-4 w-4 mr-2" />
-                  Contact Expert
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Now
+                </Button>
+                <Button
+                  onClick={() => window.open('https://wa.me/919106338340?text=Hi, I\'m interested in this diamond: ' + encodeURIComponent(diamond?.description || ''), '_blank')}
+                  className="bg-green-500 hover:bg-green-600 text-white transition-all duration-200 transform hover:scale-105"
+                >
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  WhatsApp
                 </Button>
                 <Button
                   variant="outline"
