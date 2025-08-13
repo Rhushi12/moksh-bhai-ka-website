@@ -23,7 +23,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./contexts/AuthContext";
 import { useFilter } from "./contexts/FilterContext";
 import { OTPModal } from "./components/OTPModal";
-import { OnboardingFilterModal } from "./components/OnboardingFilterModal";
+// import { OnboardingFilterModal } from "./components/OnboardingFilterModal"; // Disabled
 
 const queryClient = new QueryClient();
 
@@ -63,7 +63,7 @@ const AppContent = () => {
     // Only show modals on the home page (Index)
     const isHomePage = location.pathname === '/';
     const shouldShowOTPModal = isHomePage && !isLoading && !hasCompletedAuth?.() && isOTPModalOpen;
-    const shouldShowOnboardingModal = isHomePage && !isLoading && showOnboarding && state?.is_first_visit && !state?.is_onboarding_complete;
+    const shouldShowOnboardingModal = false; // Disabled onboarding modal
     const shouldShowModals = shouldShowOTPModal || shouldShowOnboardingModal;
     
     // Debug logging for modal state
@@ -149,11 +149,7 @@ const AppContent = () => {
             onClose={handleOTPClose}
           />
 
-          {/* Onboarding Filter Modal */}
-          <OnboardingFilterModal
-            isOpen={showOnboarding}
-            onClose={handleOnboardingClose}
-          />
+          {/* Onboarding Filter Modal - Disabled */}
         </div>
       );
     }
@@ -199,12 +195,7 @@ const AppContent = () => {
           />
         )}
         
-        {shouldShowOnboardingModal && (
-          <OnboardingFilterModal
-            isOpen={showOnboarding}
-            onClose={handleOnboardingClose}
-          />
-        )}
+        {/* Onboarding modal disabled */}
       </div>
     );
   } catch (error) {

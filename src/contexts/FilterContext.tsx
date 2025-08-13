@@ -76,7 +76,7 @@ const initialState: FilterState = {
   color_type: 'white',
   search_query: '',
   is_filter_panel_open: false,
-  is_onboarding_complete: false,
+      is_onboarding_complete: true, // Mark all users as having completed onboarding
   is_first_visit: true,
 };
 
