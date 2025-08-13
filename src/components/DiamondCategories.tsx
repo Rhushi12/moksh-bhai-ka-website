@@ -275,7 +275,7 @@ export const DiamondCategories: React.FC = () => {
           {/* Scrollable Container */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 px-2"
+            className="flex gap-3 sm:gap-6 overflow-x-auto scrollbar-hide pb-4 px-2 sm:px-4"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -288,7 +288,7 @@ export const DiamondCategories: React.FC = () => {
               return (
                 <Card 
                   key={category.id} 
-                  className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300 min-w-[320px] max-w-[320px] flex-shrink-0"
+                  className="bg-gray-900 border-gray-700 hover:border-gray-600 transition-all duration-300 min-w-[280px] sm:min-w-[320px] max-w-[280px] sm:max-w-[320px] flex-shrink-0"
                 >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">

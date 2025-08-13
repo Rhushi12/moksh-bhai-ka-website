@@ -53,6 +53,14 @@ export interface Diamond {
     tags?: string[];
     lastUpdated?: string;
   };
+  
+  // Certification fields
+  certification?: 'GIA' | 'IGI' | 'AGS' | 'HRD' | 'Other';
+  certification_number?: string;
+  
+  // Additional location and origin fields
+  origin_country?: string;
+  mine_location?: string;
 }
 
 // Load diamonds from database JSON file

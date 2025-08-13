@@ -99,7 +99,7 @@ export const FloatingActionButton: React.FC = () => {
               className={`
                 ${action.className} 
                 shadow-lg hover:shadow-xl transition-all duration-200 
-                min-w-[140px] justify-start group relative overflow-hidden
+                min-w-[120px] sm:min-w-[140px] justify-start group relative overflow-hidden
               `}
               size="sm"
             >

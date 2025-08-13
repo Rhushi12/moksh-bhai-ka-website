@@ -274,7 +274,7 @@ export const FilterPanel: React.FC = () => {
 
   return (
     <Sheet open={state.is_filter_panel_open} onOpenChange={toggleFilterPanel}>
-      <SheetContent side="right" className="w-[400px] sm:w-[540px] bg-gray-900 border-gray-700">
+      <SheetContent side="right" className="w-[95vw] sm:w-[400px] md:w-[540px] bg-gray-900 border-gray-700">
         <SheetHeader className="border-b border-gray-700 pb-4">
           <div className="flex items-center justify-between">
             <SheetTitle className="text-gray-50 flex items-center">

@@ -180,7 +180,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
               variant="outline"
               className={cn(
                 'h-10 rounded-r-none border-r-0 px-3 py-2 text-sm font-medium',
-                'flex items-center gap-2 min-w-[120px] justify-between',
+                'flex items-center gap-2 min-w-[100px] sm:min-w-[120px] justify-between',
                 'bg-gray-700 border-gray-600 text-gray-50 hover:bg-gray-600',
                 error && 'border-destructive',
                 disabled && 'opacity-50 cursor-not-allowed'

@@ -627,7 +627,121 @@ export const FilteredGalleryPage: React.FC = () => {
         {/* Results and Controls Bar */}
         <div className="border-b border-gray-800 bg-gray-900/30">
           <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            {/* Mobile-First Controls Layout */}
+            <div className="block lg:hidden">
+              {/* Results Count - Mobile */}
+              <div className="text-center mb-4">
+                <span className="text-sm text-gray-300 font-montserrat">
+                  Showing {sortedDiamonds.length} of {safeDiamonds.length} diamonds
+                </span>
+                {hasActiveFilters() && (
+                  <Badge variant="secondary" className="ml-2 bg-gray-700 text-gray-50 border-gray-600">
+                    {getActiveFiltersCount()} filters active
+                  </Badge>
+                )}
+              </div>
+              
+              {/* Mobile Control Buttons - Responsive Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
+                {/* Search Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSearchToggle}
+                  className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center p-2 h-16 ${
+                    isSearchOpen ? 'ring-2 ring-gray-50' : ''
+                  }`}
+                >
+                  <Search className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Search</span>
+                </Button>
+                
+                {/* Filters Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleFilterPanel}
+                  className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center p-2 h-16 relative"
+                >
+                  <Filter className="h-5 w-5 mb-1" />
+                  <span className="text-xs">Filters</span>
+                  {hasActiveFilters() && (
+                    <Badge variant="secondary" className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 p-0 flex items-center justify-center font-bold">
+                      {getActiveFiltersCount()}
+                    </Badge>
+                  )}
+                </Button>
+                
+                {/* Sorting Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSortPanelOpen(!isSortPanelOpen)}
+                  className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex flex-col items-center justify-center p-2 h-16 relative"
+                >
+                  <List className="h-5 w-5 mb-1" />
+                  <span className="text-xs">
+                    {sortBy === 'price' && 'Price'}
+                    {sortBy === 'carat' && 'Carat'}
+                    {sortBy === 'shape' && 'Shape'}
+                    {sortBy === 'clarity' && 'Clarity'}
+                    {sortBy === 'color' && 'Color'}
+                    {sortBy === 'date' && 'Date'}
+                    {sortBy === 'popularity' && 'Popular'}
+                  </span>
+                  <ChevronDown className="h-3 w-3 absolute top-1 right-1" />
+                </Button>
+                
+                {/* Change View Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleViewModeChange}
+                  className="text-gray-300 hover:text-white hover:bg-gray-700 transition-all duration-200 flex flex-col items-center justify-center p-2 h-16"
+                >
+                  {viewMode === 'grid' ? <List className="h-5 w-5 mb-1" /> : <Grid3X3 className="h-5 w-5 mb-1" />}
+                  <span className="text-xs">View</span>
+                </Button>
+              </div>
+              
+              {/* Mobile Search Input */}
+              {isSearchOpen && (
+                <div className="mb-4">
+                  <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-2 border border-gray-600">
+                    <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 w-full">
+                      <Input
+                        type="text"
+                        placeholder="Search diamonds..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:outline-none w-full"
+                        autoFocus
+                      />
+                      <Button
+                        type="submit"
+                        variant="ghost"
+                        size="sm"
+                        className="text-gray-400 hover:text-white p-1 flex-shrink-0"
+                      >
+                        <Search className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleSearchClear}
+                        className="text-gray-400 hover:text-white p-1 flex-shrink-0"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </form>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Desktop Controls Layout */}
+            <div className="hidden lg:flex lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
               {/* Left Side - Results Count and Search */}
               <div className="flex flex-col space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -765,10 +879,10 @@ export const FilteredGalleryPage: React.FC = () => {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
                 {/* Price Sorting */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300">Price</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-300">Price</h4>
                   <div className="space-y-1">
                     <Button
                       variant={sortBy === 'price' && sortOrder === 'asc' ? 'default' : 'outline'}
@@ -778,7 +892,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('asc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'price' && sortOrder === 'asc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -794,7 +908,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('desc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'price' && sortOrder === 'desc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -807,7 +921,7 @@ export const FilteredGalleryPage: React.FC = () => {
 
                 {/* Carat Sorting */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300">Carat</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-300">Carat</h4>
                   <div className="space-y-1">
                     <Button
                       variant={sortBy === 'carat' && sortOrder === 'asc' ? 'default' : 'outline'}
@@ -817,7 +931,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('asc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'carat' && sortOrder === 'asc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -833,7 +947,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('desc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'carat' && sortOrder === 'desc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -846,7 +960,7 @@ export const FilteredGalleryPage: React.FC = () => {
 
                 {/* Shape Sorting */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300">Shape</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-300">Shape</h4>
                   <div className="space-y-1">
                     <Button
                       variant={sortBy === 'shape' && sortOrder === 'asc' ? 'default' : 'outline'}
@@ -856,7 +970,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('asc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'shape' && sortOrder === 'asc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -872,7 +986,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('desc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'shape' && sortOrder === 'desc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -885,7 +999,7 @@ export const FilteredGalleryPage: React.FC = () => {
 
                 {/* Clarity Sorting */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300">Clarity</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-300">Clarity</h4>
                   <div className="space-y-1">
                     <Button
                       variant={sortBy === 'clarity' && sortOrder === 'asc' ? 'default' : 'outline'}
@@ -895,7 +1009,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('asc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'clarity' && sortOrder === 'asc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -911,7 +1025,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('desc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'clarity' && sortOrder === 'desc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -924,7 +1038,7 @@ export const FilteredGalleryPage: React.FC = () => {
 
                 {/* Color Sorting */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300">Color</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-300">Color</h4>
                   <div className="space-y-1">
                     <Button
                       variant={sortBy === 'color' && sortOrder === 'asc' ? 'default' : 'outline'}
@@ -934,7 +1048,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('asc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'color' && sortOrder === 'asc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -950,7 +1064,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('desc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'color' && sortOrder === 'desc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -963,7 +1077,7 @@ export const FilteredGalleryPage: React.FC = () => {
 
                 {/* Date Sorting */}
                 <div className="space-y-2">
-                  <h4 className="text-sm font-medium text-gray-300">Date</h4>
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-300">Date</h4>
                   <div className="space-y-1">
                     <Button
                       variant={sortBy === 'date' && sortOrder === 'asc' ? 'default' : 'outline'}
@@ -973,7 +1087,7 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('asc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'date' && sortOrder === 'asc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-700 hover:bg-gray-700 hover:text-white bg-gray-700'
@@ -989,13 +1103,35 @@ export const FilteredGalleryPage: React.FC = () => {
                         setSortOrder('desc');
                         setIsSortPanelOpen(false);
                       }}
-                      className={`w-full ${
+                      className={`w-full text-xs sm:text-sm ${
                         sortBy === 'date' && sortOrder === 'desc'
                           ? 'bg-blue-600 text-white hover:bg-blue-700'
                           : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
                       }`}
                     >
                       Newest First
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Popularity Sorting */}
+                <div className="space-y-2">
+                  <h4 className="text-xs sm:text-sm font-medium text-gray-300">Popularity</h4>
+                  <div className="space-y-1">
+                    <Button
+                      variant={sortBy === 'popularity' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        setSortBy('popularity');
+                        setIsSortPanelOpen(false);
+                      }}
+                      className={`w-full text-xs sm:text-sm ${
+                        sortBy === 'popularity'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700'
+                          : 'border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                      }`}
+                    >
+                      Most Popular
                     </Button>
                   </div>
                 </div>
@@ -1008,11 +1144,11 @@ export const FilteredGalleryPage: React.FC = () => {
         <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
           {viewMode === 'grid' ? (
             /* Grid View - Gallery Style */
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6">
               {sortedDiamonds.slice(0, visibleCards).map((diamond) => {
                 try {
                   return (
-                    <Card 
+                                        <Card 
                       key={diamond.id} 
                       className="bg-gray-800 border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 interactive-hover cursor-pointer"
                       onClick={() => handleViewDiamond(diamond.id)}
@@ -1020,24 +1156,24 @@ export const FilteredGalleryPage: React.FC = () => {
                       <CardContent className="p-0">
                         {/* Diamond Image */}
                         <div className="relative aspect-square bg-gradient-to-br from-gray-700 to-gray-800 rounded-t-lg overflow-hidden">
-                                                  {/* Selection Checkbox - Top Left */}
-                        <div className="absolute top-1 sm:top-2 left-1 sm:left-2 z-10">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDiamondSelection(Number(diamond.id));
-                            }}
-                            className={`w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
-                              selectedDiamonds.has(Number(diamond.id))
-                                ? 'bg-blue-500 text-white hover:bg-blue-600'
-                                : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
-                            }`}
-                          >
-                            <CheckSquare className="w-3 h-3 sm:w-4 sm:h-4" />
-                          </Button>
-                        </div>
+                          {/* Selection Checkbox - Top Left */}
+                          <div className="absolute top-1 left-1 z-10">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDiamondSelection(Number(diamond.id));
+                              }}
+                              className={`w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 p-0 rounded-full transition-all duration-200 ${
+                                selectedDiamonds.has(Number(diamond.id))
+                                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                  : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
+                              }`}
+                            >
+                              <CheckSquare className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
+                            </Button>
+                          </div>
 
                           <img
                             src={diamond.primaryImage || '/diamond-round.jpg'}
@@ -1060,7 +1196,7 @@ export const FilteredGalleryPage: React.FC = () => {
                           </div>
                           
                                                   {/* Action Buttons Overlay */}
-                        <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex space-x-1">
+                        <div className="absolute top-1 right-1 flex space-x-1">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1068,13 +1204,13 @@ export const FilteredGalleryPage: React.FC = () => {
                               e.stopPropagation();
                               handleSaveDiamond(Number(diamond.id));
                             }}
-                            className={`w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
+                            className={`w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 p-0 rounded-full transition-all duration-200 ${
                               savedDiamonds.has(Number(diamond.id))
                                 ? 'bg-red-500 text-white hover:bg-red-600'
                                 : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
                             }`}
                           >
-                            <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Heart className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1083,54 +1219,49 @@ export const FilteredGalleryPage: React.FC = () => {
                               e.stopPropagation();
                               handleAddToWishlist(Number(diamond.id));
                             }}
-                            className={`w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
+                            className={`w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 p-0 rounded-full transition-all duration-200 ${
                               wishlistDiamonds.has(Number(diamond.id))
                                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                                 : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
                             }`}
                           >
-                            <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                            <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 md:w-4 md:h-4" />
                           </Button>
                         </div>
                         </div>
 
                         {/* Diamond Details */}
-                        <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                        <div className="p-2 sm:p-3 md:p-4 space-y-1 sm:space-y-2 md:space-y-3">
                           {/* Diamond Specifications - Like the image */}
-                          <div className="space-y-1 sm:space-y-2">
+                          <div className="space-y-1">
                             {/* First Line: Shape, Carat, Color, Clarity */}
-                            <div className="text-xs sm:text-sm text-gray-100 font-medium leading-tight">
-                              {diamond.shape || 'Round'} {diamond.carat || 0}ct {diamond.color || 'N/A'} {diamond.clarity || 'N/A'}
+                            <div className="text-xs text-gray-100 font-medium leading-tight">
+                              {diamond.shape || 'Round'} {diamond.carat || 0}ct
                             </div>
                             
-                            {/* Second Line: Cut, Polish, Symmetry, Fluorescence */}
-                            <div className="text-xs sm:text-sm text-gray-300 leading-tight">
-                              {diamond.cut || 'N/A'}.{diamond.polish || 'N/A'}.{diamond.symmetry || 'N/A'}/{diamond.fluorescence || 'NONE'}
+                            {/* Second Line: Color, Clarity */}
+                            <div className="text-xs text-gray-300 leading-tight">
+                              {diamond.color || 'N/A'} {diamond.clarity || 'N/A'}
                             </div>
                             
                             {/* Third Line: Price */}
-                            <div className="text-base sm:text-lg font-bold text-gray-100">
+                            <div className="text-sm sm:text-base md:text-lg font-bold text-gray-100">
                               {formatPrice(diamond.price || '0')}
-                            </div>
-                            
-                            {/* Fourth Line: Total Price */}
-                            <div className="text-xs sm:text-sm text-gray-400">
-                              Total Price
                             </div>
                           </div>
 
                           {/* Action Buttons */}
-                          <div className="flex items-center justify-between pt-2">
+                          <div className="flex items-center justify-between pt-1 sm:pt-2">
                             <Button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 handleViewDiamond(diamond.id);
                               }}
-                              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 mr-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+                              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 mr-1 sm:mr-2 text-xs px-1 sm:px-2 md:px-3 py-1 sm:py-2"
                             >
-                              <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                              <span className="hidden sm:inline">View Details</span>
-                              <span className="sm:hidden">View</span>
+                              <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
+                              <span className="hidden sm:inline">View</span>
+                              <span className="sm:hidden">→</span>
                             </Button>
                             
                             {/* Three dots menu - Like the image */}
@@ -1141,9 +1272,9 @@ export const FilteredGalleryPage: React.FC = () => {
                                 e.stopPropagation();
                                 // Add more options menu here
                               }}
-                              className="w-6 h-6 sm:w-8 sm:h-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
+                              className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
                             >
-                              <span className="text-sm sm:text-lg">⋯</span>
+                              <span className="text-xs sm:text-sm md:text-lg">⋯</span>
                             </Button>
                           </div>
                         </div>

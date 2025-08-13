@@ -13,9 +13,7 @@ import {
   ArrowLeft, 
   Heart, 
   Share2, 
-  Download, 
   Eye, 
-  Calendar, 
   User, 
   Star,
   ChevronLeft,
@@ -157,48 +155,11 @@ export const DiamondDetailPage: React.FC = () => {
     }
   };
 
-  // Handle export diamond
-  const handleExport = () => {
-    if (!diamond) return;
-
-    const diamondData = {
-      id: diamond.id,
-      shape: diamond.shape,
-      carat: diamond.carat,
-      color: diamond.color,
-      clarity: diamond.clarity,
-      cut: diamond.cut,
-      price: diamond.price,
-      category: diamond.category,
-      description: diamond.description,
-    };
-
-    const dataStr = JSON.stringify(diamondData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${diamond.shape}-diamond-${diamond.id}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    toast({
-      title: 'Export successful!',
-      description: 'Diamond data has been exported as JSON file.',
-    });
-  };
 
 
 
-  // Handle schedule viewing
-  const handleScheduleViewing = () => {
-    toast({
-      title: 'Schedule Viewing',
-      description: 'Viewing scheduler would open here in a real application.',
-    });
-  };
+
+
 
   // Handle contact expert
   const handleContactExpert = () => {
@@ -279,18 +240,18 @@ export const DiamondDetailPage: React.FC = () => {
   if (hasError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">💎</div>
-            <h2 className="text-2xl font-semibold mb-2 text-gray-50">Something went wrong</h2>
-            <p className="text-gray-300 mb-6">An error occurred while loading the diamond details.</p>
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="text-center py-12 sm:py-16">
+            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💎</div>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-gray-50">Something went wrong</h2>
+            <p className="text-sm sm:text-base text-gray-300 mb-4 sm:mb-6">An error occurred while loading the diamond details.</p>
             <Button 
               onClick={() => {
                 setHasError(false);
                 window.location.reload();
               }} 
               variant="outline"
-              className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-colors duration-200"
+              className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-colors duration-200 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
             >
               Try Again
             </Button>
@@ -304,11 +265,11 @@ export const DiamondDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex items-center justify-center h-64">
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="flex items-center justify-center h-48 sm:h-64">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-50 mx-auto mb-4"></div>
-              <p className="text-gray-100">Loading diamond details...</p>
+              <div className="animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-gray-50 mx-auto mb-3 sm:mb-4"></div>
+              <p className="text-sm sm:text-base text-gray-100">Loading diamond details...</p>
             </div>
           </div>
         </div>
@@ -320,15 +281,15 @@ export const DiamondDetailPage: React.FC = () => {
   if (firebaseError) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">💎</div>
-            <h2 className="text-2xl font-semibold mb-2 text-gray-50">Error Loading Diamond</h2>
-            <p className="text-gray-300 mb-6">{firebaseError}</p>
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="text-center py-12 sm:py-16">
+            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💎</div>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-gray-50">Error Loading Diamond</h2>
+            <p className="text-sm sm:text-base text-gray-300 mb-4 sm:mb-6">{firebaseError}</p>
             <Button 
               onClick={() => window.location.reload()} 
               variant="outline"
-              className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-colors duration-200"
+              className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-colors duration-200 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
             >
               Try Again
             </Button>
@@ -341,15 +302,15 @@ export const DiamondDetailPage: React.FC = () => {
   if (error || !diamond) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900">
-        <div className="container mx-auto px-4 py-8">
-          <div className="text-center py-16">
-            <div className="text-6xl mb-4">💎</div>
-            <h2 className="text-2xl font-semibold mb-2 text-gray-50">Diamond Not Found</h2>
-            <p className="text-gray-300 mb-6">{error || 'The requested diamond could not be found.'}</p>
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          <div className="text-center py-12 sm:py-16">
+            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">💎</div>
+            <h2 className="text-xl sm:text-2xl font-semibold mb-2 text-gray-50">Diamond Not Found</h2>
+            <p className="text-sm sm:text-base text-gray-300 mb-4 sm:mb-6">{error || 'The requested diamond could not be found.'}</p>
             <Button 
               onClick={() => navigate('/gallery')} 
               variant="outline"
-              className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-colors duration-200"
+              className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-colors duration-200 text-sm sm:text-base px-4 sm:px-6 py-2 sm:py-3"
             >
               Back to Gallery
             </Button>
@@ -363,8 +324,55 @@ export const DiamondDetailPage: React.FC = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-950 to-gray-900">
       {/* Header */}
       <div className="border-b border-gray-800 bg-gray-900/30">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          {/* Mobile Header Layout */}
+          <div className="block lg:hidden">
+            <div className="flex flex-col space-y-3">
+              {/* Top Row - Back Button and Title */}
+              <div className="flex items-center justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate('/gallery')} 
+                  className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <div className="text-center">
+                  <h1 className="text-lg sm:text-xl font-bold text-gray-50 font-playfair">{diamond.shape} Diamond</h1>
+                  <p className="text-xs text-gray-400">ID: {diamond.id}</p>
+                </div>
+                <div className="w-16"></div> {/* Spacer for centering */}
+              </div>
+              
+              {/* Bottom Row - Action Buttons */}
+              <div className="flex items-center justify-center space-x-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleSave}
+                  className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 ${isSaved ? 'ring-2 ring-yellow-400' : ''}`}
+                >
+                  <Heart className={`h-4 w-4 ${isSaved ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+                  <span className="hidden sm:inline ml-2">{isSaved ? 'Saved' : 'Save'}</span>
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleShare}
+                  className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline ml-2">Share</span>
+                </Button>
+
+              </div>
+            </div>
+          </div>
+          
+          {/* Desktop Header Layout */}
+          <div className="hidden lg:flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <Button
                 variant="outline"
@@ -399,25 +407,17 @@ export const DiamondDetailPage: React.FC = () => {
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleExport}
-                className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
+
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8 pb-32">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 lg:py-8 pb-32">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Media Gallery */}
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="relative aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg overflow-hidden group">
               {/* Show video or image based on current media */}
               {currentMedia?.type === 'video' ? (
@@ -444,27 +444,27 @@ export const DiamondDetailPage: React.FC = () => {
                 />
               )}
               
-              {/* Navigation arrows */}
+              {/* Navigation arrows - Always visible on mobile */}
               <button
                 onClick={() => handleMediaChange('prev')}
-                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/70"
+                className="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-1.5 sm:p-2 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 hover:bg-black/70"
               >
-                <ChevronLeft className="h-5 w-5" />
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               <button
                 onClick={() => handleMediaChange('next')}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-black/70"
+                className="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-black/50 text-white p-1.5 sm:p-2 rounded-full opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-all duration-200 hover:bg-black/70"
               >
-                <ChevronRight className="h-5 w-5" />
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
               </button>
               
               {/* Media indicators */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+              <div className="absolute bottom-2 sm:bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1.5 sm:space-x-2">
                 {diamondMedia.map((media, index) => (
                   <button
                     key={index}
                     onClick={() => handleMediaSelect(index)}
-                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                    className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-200 ${
                       index === currentMediaIndex ? 'bg-white' : 'bg-white/50'
                     }`}
                   />
@@ -473,22 +473,23 @@ export const DiamondDetailPage: React.FC = () => {
 
               {/* Video indicator badge */}
               {hasVideos && (
-                <div className="absolute top-4 left-4">
-                  <Badge className="bg-black bg-opacity-50 text-white">
-                    <Play className="w-3 h-3 mr-1" />
-                    Video Available
+                <div className="absolute top-2 sm:top-4 left-2 sm:left-4">
+                  <Badge className="bg-black bg-opacity-50 text-white text-xs sm:text-sm px-2 py-1">
+                    <Play className="w-2.5 h-2.5 sm:w-3 sm:h-3 mr-1" />
+                    <span className="hidden sm:inline">Video Available</span>
+                    <span className="sm:hidden">Video</span>
                   </Badge>
                 </div>
               )}
             </div>
 
             {/* Thumbnail gallery */}
-            <div className="flex space-x-2 overflow-x-auto">
+            <div className="flex space-x-2 sm:space-x-3 overflow-x-auto pb-2">
               {diamondMedia.map((media, index) => (
                 <button
                   key={index}
                   onClick={() => handleMediaSelect(index)}
-                  className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden transition-all duration-200 transform hover:scale-105 relative ${
+                  className={`flex-shrink-0 w-12 h-12 sm:w-16 sm:h-16 rounded-lg overflow-hidden transition-all duration-200 transform hover:scale-105 relative ${
                     index === currentMediaIndex ? 'ring-2 ring-white' : 'ring-1 ring-gray-600'
                   }`}
                 >
@@ -504,7 +505,7 @@ export const DiamondDetailPage: React.FC = () => {
                         }}
                       />
                       <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
-                        <Play className="w-4 h-4 text-white" />
+                        <Play className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                       </div>
                     </div>
                   ) : (
@@ -524,33 +525,53 @@ export const DiamondDetailPage: React.FC = () => {
           </div>
 
           {/* Diamond Details */}
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Quick Overview */}
             <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-50">Quick Overview</CardTitle>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg text-gray-50">Quick Overview</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <Label className="text-sm text-gray-300">Carat Weight</Label>
-                    <p className="text-lg font-semibold text-gray-50">{diamond.carat} ct</p>
+                    <Label className="text-xs sm:text-sm text-gray-300">Carat Weight</Label>
+                    <p className="text-base sm:text-lg font-semibold text-gray-50">{diamond.carat} ct</p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-300">Color</Label>
-                    <Badge className="bg-white text-gray-900 border border-gray-200">
+                    <Label className="text-xs sm:text-sm text-gray-300">Color</Label>
+                    <Badge className="bg-white text-gray-900 border border-gray-200 text-xs sm:text-sm px-2 py-1">
                       {diamond.color}
                     </Badge>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-300">Clarity</Label>
-                    <Badge className={`${getClarityColor(diamond.clarity)}`}>
+                    <Label className="text-xs sm:text-sm text-gray-300">Clarity</Label>
+                    <Badge className={`${getClarityColor(diamond.clarity)} text-xs sm:text-sm px-2 py-1`}>
                       {diamond.clarity}
                     </Badge>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-300">Cut</Label>
-                    <p className="text-lg font-semibold text-gray-50">{diamond.cut}</p>
+                    <Label className="text-xs sm:text-sm text-gray-300">Cut</Label>
+                    <p className="text-base sm:text-lg font-semibold text-gray-50">{diamond.cut}</p>
+                  </div>
+                </div>
+                
+                {/* Additional Specifications Row */}
+                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <Label className="text-xs sm:text-sm text-gray-300">Polish</Label>
+                    <p className="text-sm sm:text-base text-gray-50">{diamond.polish || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs sm:text-sm text-gray-300">Symmetry</Label>
+                    <p className="text-sm sm:text-base text-gray-50">{diamond.symmetry || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs sm:text-sm text-gray-300">Fluorescence</Label>
+                    <p className="text-sm sm:text-base text-gray-50">{diamond.fluorescence || 'N/A'}</p>
+                  </div>
+                  <div>
+                    <Label className="text-xs sm:text-sm text-gray-300">Growth Type</Label>
+                    <p className="text-sm sm:text-base text-gray-50">{diamond.growth_type || 'N/A'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -559,17 +580,17 @@ export const DiamondDetailPage: React.FC = () => {
             {/* Price Information */}
             {diamond.price && (
               <Card className="bg-gray-800 border-gray-700">
-                <CardHeader>
-                  <CardTitle className="text-gray-50">Pricing</CardTitle>
+                <CardHeader className="pb-3 sm:pb-6">
+                  <CardTitle className="text-base sm:text-lg text-gray-50">Pricing</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4">
                   <div>
-                    <Label className="text-sm text-gray-300">Total Price</Label>
-                    <p className="text-3xl font-bold text-gray-50">{formatPrice(diamond.price)}</p>
+                    <Label className="text-xs sm:text-sm text-gray-300">Total Price</Label>
+                    <p className="text-2xl sm:text-3xl font-bold text-gray-50">{formatPrice(diamond.price)}</p>
                   </div>
                   <div>
-                    <Label className="text-sm text-gray-300">Price per Carat</Label>
-                    <p className="text-lg font-semibold text-gray-50">
+                    <Label className="text-xs sm:text-sm text-gray-300">Price per Carat</Label>
+                    <p className="text-base sm:text-lg font-semibold text-gray-50">
                       {formatPrice(parseFloat(diamond.price.replace(/[$,]/g, '')) / parseFloat(diamond.carat.toString()))}
                     </p>
                   </div>
@@ -579,66 +600,144 @@ export const DiamondDetailPage: React.FC = () => {
 
             {/* Description */}
             <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-50">Description</CardTitle>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg text-gray-50">Description</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-100 leading-relaxed">{diamond.description}</p>
+                <p className="text-sm sm:text-base text-gray-100 leading-relaxed">{diamond.description}</p>
               </CardContent>
             </Card>
 
             {/* Specifications */}
             <Card className="bg-gray-800 border-gray-700">
-              <CardHeader>
-                <CardTitle className="text-gray-50">Specifications</CardTitle>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg text-gray-50">Specifications</CardTitle>
               </CardHeader>
-              <CardContent className="pb-8">
+              <CardContent className="pb-4 sm:pb-8">
                 <Tabs defaultValue="details" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2 bg-gray-700 border-gray-600">
-                    <TabsTrigger value="details" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Details</TabsTrigger>
-                    <TabsTrigger value="origin" className="text-white data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Origin</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-3 bg-gray-700 border-gray-600">
+                    <TabsTrigger value="details" className="text-white text-xs sm:text-sm data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Details</TabsTrigger>
+                    <TabsTrigger value="origin" className="text-white text-xs sm:text-sm data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Origin</TabsTrigger>
+                    <TabsTrigger value="technical" className="text-white text-xs sm:text-sm data-[state=active]:bg-gray-600 data-[state=active]:text-white transition-all duration-200">Technical</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="details" className="space-y-4 mt-4 pb-4">
-                    <div className="grid grid-cols-2 gap-4">
+                  <TabsContent value="details" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4 pb-4">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
                       <div>
-                        <Label className="text-sm text-gray-300">Shape</Label>
-                        <Badge className={`${getShapeColor(diamond.shape)} text-white`}>
+                        <Label className="text-xs sm:text-sm text-gray-300">Shape</Label>
+                        <Badge className={`${getShapeColor(diamond.shape)} text-white text-xs sm:text-sm px-2 py-1`}>
                           {diamond.shape}
                         </Badge>
                       </div>
                       <div>
-                        <Label className="text-sm text-gray-300">Category</Label>
-                        <p className="text-gray-50">{diamond.category}</p>
+                        <Label className="text-xs sm:text-sm text-gray-300">Category</Label>
+                        <p className="text-sm sm:text-base text-gray-50">{diamond.category}</p>
                       </div>
                       <div>
-                        <Label className="text-sm text-gray-300">Measurements</Label>
-                        <p className="text-gray-50">6.5 x 6.5 x 4.0 mm</p>
+                        <Label className="text-xs sm:text-sm text-gray-300">Measurements</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.depth_percentage && diamond.table_percentage && diamond.crown_height 
+                            ? `${diamond.table_percentage.toFixed(1)} x ${diamond.table_percentage.toFixed(1)} x ${diamond.crown_height.toFixed(1)} mm`
+                            : 'N/A'
+                          }
+                        </p>
                       </div>
                       <div>
-                        <Label className="text-sm text-gray-300">Depth %</Label>
-                        <p className="text-gray-50">61.5%</p>
+                        <Label className="text-xs sm:text-sm text-gray-300">Depth %</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.depth_percentage ? `${diamond.depth_percentage.toFixed(1)}%` : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm text-gray-300">Table %</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.table_percentage ? `${diamond.table_percentage.toFixed(1)}%` : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm text-gray-300">Crown Height</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.crown_height ? `${diamond.crown_height.toFixed(1)}%` : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm text-gray-300">Pavilion Depth</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.pavilion_depth ? `${diamond.pavilion_depth.toFixed(1)}%` : 'N/A'}
+                        </p>
                       </div>
                     </div>
                   </TabsContent>
                   
 
                   
-                  <TabsContent value="origin" className="space-y-4 mt-4 pb-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center space-x-3">
-                        <MapPin className="h-5 w-5 text-gray-400" />
+                  <TabsContent value="origin" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4 pb-4">
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex items-center space-x-2 sm:space-x-3">
+                        <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                         <div>
-                          <Label className="text-sm text-gray-300">Origin</Label>
-                          <p className="text-gray-50">Botswana</p>
+                          <Label className="text-xs sm:text-sm text-gray-300">Origin</Label>
+                          <p className="text-sm sm:text-base text-gray-50">
+                            {diamond.origin_country || diamond.location || 'N/A'}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex items-center space-x-3">
-                        <Star className="h-5 w-5 text-gray-400" />
+                      <div className="flex items-center space-x-2 sm:space-x-3">
+                        <Star className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
                         <div>
-                          <Label className="text-sm text-gray-300">Certification</Label>
-                          <p className="text-gray-50">GIA</p>
+                          <Label className="text-xs sm:text-sm text-gray-300">Certification</Label>
+                          <p className="text-sm sm:text-base text-gray-50">
+                            {diamond.certification || 'N/A'}
+                            {diamond.certification_number && ` (${diamond.certification_number})`}
+                          </p>
                         </div>
+                      </div>
+                      <div className="flex items-center space-x-2 sm:space-x-3">
+                        <User className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                        <div>
+                          <Label className="text-xs sm:text-sm text-gray-300">Supplier</Label>
+                          <p className="text-sm sm:text-base text-gray-50">
+                            {diamond.supplier || 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2 sm:space-x-3">
+                        <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
+                        <div>
+                          <Label className="text-xs sm:text-sm text-gray-300">Mine Location</Label>
+                          <p className="text-sm sm:text-base text-gray-50">
+                            {diamond.mine_location || diamond.location || 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                  
+                  <TabsContent value="technical" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4 pb-4">
+                    <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                      <div>
+                        <Label className="text-xs sm:text-sm text-gray-300">Girdle Thickness</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.girdle_thickness || 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm text-gray-300">Culet Size</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.culet_size || 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm text-gray-300">Crown Height</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.crown_height ? `${diamond.crown_height.toFixed(1)}%` : 'N/A'}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs sm:text-sm text-gray-300">Pavilion Depth</Label>
+                        <p className="text-sm sm:text-base text-gray-50">
+                          {diamond.pavilion_depth ? `${diamond.pavilion_depth.toFixed(1)}%` : 'N/A'}
+                        </p>
                       </div>
                     </div>
                   </TabsContent>
@@ -649,9 +748,64 @@ export const DiamondDetailPage: React.FC = () => {
         </div>
 
         {/* Sticky Call-to-Action Section */}
-        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-4 z-50">
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur-sm border-t border-gray-700 p-3 sm:p-4 z-50">
           <div className="container mx-auto">
-            <div className="flex items-center justify-between">
+            {/* Mobile Layout */}
+            <div className="block lg:hidden">
+              <div className="flex flex-col space-y-3">
+                {/* Price and Interest Text */}
+                <div className="text-center">
+                  <p className="text-xs sm:text-sm text-gray-300">Interested in this diamond?</p>
+                  <p className="text-base sm:text-lg font-semibold text-gray-50">{formatPrice(diamond.price || '0')}</p>
+                </div>
+                
+                {/* Action Buttons - Stacked on Mobile */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    onClick={() => window.location.href = 'tel:+919106338340'}
+                    className="bg-green-600 hover:bg-green-700 text-white transition-all duration-200 transform hover:scale-105 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+                  >
+                    <Phone className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Call Now</span>
+                    <span className="sm:hidden">Call</span>
+                  </Button>
+                  <Button
+                    onClick={() => window.open('https://wa.me/919106338340?text=Hi, I\'m interested in this diamond: ' + encodeURIComponent(diamond?.description || ''), '_blank')}
+                    className="bg-green-500 hover:bg-green-600 text-white transition-all duration-200 transform hover:scale-105 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+                  >
+                    <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">WhatsApp</span>
+                    <span className="sm:hidden">WhatsApp</span>
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleAddToWishlist}
+                    className={`transition-all duration-200 transform hover:scale-105 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 ${
+                      isInWishlist ? 'ring-2 ring-pink-400 text-pink-400' : 'text-white hover:bg-gray-700 hover:text-white bg-gray-700'
+                    }`}
+                  >
+                    <Heart className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${isInWishlist ? 'fill-current' : ''}`} />
+                    <span className="hidden sm:inline">{isInWishlist ? 'In Wishlist' : 'Add to Wishlist'}</span>
+                    <span className="sm:hidden">{isInWishlist ? 'Saved' : 'Save'}</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={handleShare}
+                    className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+                  >
+                    <Share2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                    <span className="hidden sm:inline">Share</span>
+                    <span className="sm:hidden">Share</span>
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Desktop Layout */}
+            <div className="hidden lg:flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div>
                   <p className="text-sm text-gray-300">Interested in this diamond?</p>
@@ -660,14 +814,7 @@ export const DiamondDetailPage: React.FC = () => {
               </div>
               <div className="flex items-center space-x-3">
 
-                <Button
-                  variant="outline"
-                  onClick={handleScheduleViewing}
-                  className="text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Schedule Viewing
-                </Button>
+
                 <Button
                   onClick={() => window.location.href = 'tel:+919106338340'}
                   className="bg-green-600 hover:bg-green-700 text-white transition-all duration-200 transform hover:scale-105"
