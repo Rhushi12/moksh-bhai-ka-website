@@ -13,7 +13,7 @@ import { Diamond } from '@/data/diamonds';
 import { formatPrice } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Filter, Heart, Eye, Share2, Download, Star, TrendingUp, Clock, Loader2, Search, X, Grid3X3, Plus, Sliders, List, CheckSquare, Settings, ChevronDown } from 'lucide-react';
-import { CategoryManagement } from '@/components/CategoryManagement';
+
 
 // Skeleton loader component
 const DiamondCardSkeleton: React.FC = () => (
@@ -84,7 +84,7 @@ export const FilteredGalleryPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedDiamonds, setSelectedDiamonds] = useState<Set<number>>(new Set());
   const [isSelectMode, setIsSelectMode] = useState(false);
-  const [isCategoryManagementOpen, setIsCategoryManagementOpen] = useState(false);
+
   const [isSortPanelOpen, setIsSortPanelOpen] = useState(false);
 
   // Add error boundary state
@@ -622,44 +622,43 @@ export const FilteredGalleryPage: React.FC = () => {
         title="Diamond Gallery"
       />
 
-      {/* Page Content Section */}
-      <div className="pt-20">
-        {/* Action Buttons Section - Like the image */}
+            {/* Page Content Section */}
+      <div className="pt-16 sm:pt-20">
         {/* Results and Controls Bar */}
         <div className="border-b border-gray-800 bg-gray-900/30">
-          <div className="container mx-auto px-4 py-4">
-            <div className="flex items-center justify-between">
+          <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
               {/* Left Side - Results Count and Search */}
               <div className="flex flex-col space-y-3">
-                <div className="flex items-center space-x-4">
-                  <span className="text-gray-300 font-montserrat">
+                <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+                  <span className="text-sm sm:text-base text-gray-300 font-montserrat">
                     Showing {sortedDiamonds.length} of {safeDiamonds.length} diamonds
                   </span>
                   {hasActiveFilters() && (
-                    <Badge variant="secondary" className="bg-gray-700 text-gray-50 border-gray-600">
+                    <Badge variant="secondary" className="bg-gray-700 text-gray-50 border-gray-600 w-fit">
                       {getActiveFiltersCount()} filters active
                     </Badge>
                   )}
                 </div>
                 
-                {/* Search Box - Moved below the count as per image */}
+                {/* Search Box */}
                 <div className="flex items-center space-x-2">
                   {isSearchOpen && (
-                    <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-1 border border-gray-600">
-                      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 bg-gray-800 rounded-lg px-3 py-1 border border-gray-600 w-full sm:w-auto">
+                      <form onSubmit={handleSearchSubmit} className="flex items-center space-x-2 w-full">
                         <Input
                           type="text"
                           placeholder="Search diamonds..."
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
-                          className="bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:outline-none w-48"
+                          className="bg-transparent border-none text-white placeholder-gray-400 focus:ring-0 focus:outline-none w-full sm:w-48"
                           autoFocus
                         />
                         <Button
                           type="submit"
                           variant="ghost"
                           size="sm"
-                          className="text-gray-400 hover:text-white p-1"
+                          className="text-gray-400 hover:text-white p-1 flex-shrink-0"
                         >
                           <Search className="w-4 h-4" />
                         </Button>
@@ -668,7 +667,7 @@ export const FilteredGalleryPage: React.FC = () => {
                           variant="ghost"
                           size="sm"
                           onClick={handleSearchClear}
-                          className="text-gray-400 hover:text-white p-1"
+                          className="text-gray-400 hover:text-white p-1 flex-shrink-0"
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -681,73 +680,70 @@ export const FilteredGalleryPage: React.FC = () => {
                     variant="outline"
                     size="sm"
                     onClick={handleSearchToggle}
-                    className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 ${
+                    className={`border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 flex-shrink-0 ${
                       isSearchOpen ? 'ring-2 ring-gray-50' : ''
                     }`}
                   >
                     <Search className="h-4 w-4 mr-2" />
-                    Search
+                    <span className="hidden sm:inline">Search</span>
                   </Button>
                 </div>
               </div>
               
-              {/* Right Side - Action Buttons */}
-              <div className="flex flex-col items-end space-y-3">
-                {/* Top Row - Change View Button */}
-                <div className="flex items-center space-x-4">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleViewModeChange}
-                    className="flex flex-col items-center space-y-1 p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-200"
-                  >
-                    {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
-                    <span className="text-xs">Change View</span>
-                  </Button>
-                </div>
+              {/* Right Side - Filter, Sort, and Change View Controls */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-3">
+                {/* Filters Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleFilterPanel}
+                  className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 w-full sm:w-auto justify-center"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">Filters</span>
+                  {hasActiveFilters() && (
+                    <Badge variant="secondary" className="ml-2 bg-gray-600 text-white text-xs">
+                      {getActiveFiltersCount()}
+                    </Badge>
+                  )}
+                </Button>
                 
-                                                  {/* Bottom Row - Sort and Filter Controls */}
-                 <div className="flex items-center space-x-3">
-                   {/* Sorting Button with Sliding Menu */}
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={() => setIsSortPanelOpen(!isSortPanelOpen)}
-                     className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
-                   >
-                     <List className="h-4 w-4 mr-2" />
-                     {sortBy === 'price' && sortOrder === 'asc' && 'Price (Low to High)'}
-                     {sortBy === 'price' && sortOrder === 'desc' && 'Price (High to Low)'}
-                     {sortBy === 'carat' && sortOrder === 'asc' && 'Carat (Low to High)'}
-                     {sortBy === 'carat' && sortOrder === 'desc' && 'Carat (High to Low)'}
-                     {sortBy === 'shape' && sortOrder === 'asc' && 'Shape (A to Z)'}
-                     {sortBy === 'shape' && sortOrder === 'desc' && 'Shape (Z to A)'}
-                     {sortBy === 'clarity' && sortOrder === 'asc' && 'Clarity (A to Z)'}
-                     {sortBy === 'clarity' && sortOrder === 'desc' && 'Clarity (Z to A)'}
-                     {sortBy === 'color' && sortOrder === 'asc' && 'Color (A to Z)'}
-                     {sortBy === 'color' && sortOrder === 'desc' && 'Color (Z to A)'}
-                     {sortBy === 'date' && sortOrder === 'asc' && 'Date (Oldest First)'}
-                     {sortBy === 'date' && sortOrder === 'desc' && 'Date (Newest First)'}
-                     {sortBy === 'popularity' && 'Popularity'}
-                     <ChevronDown className="h-4 w-4 ml-2" />
-                   </Button>
-                   
-                   {/* Filters Button */}
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={toggleFilterPanel}
-                     className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2"
-                   >
-                     <Filter className="h-4 w-4 mr-2" />
-                     Filters
-                     {hasActiveFilters() && (
-                       <Badge variant="secondary" className="ml-2 bg-gray-600 text-white text-xs">
-                         {getActiveFiltersCount()}
-                       </Badge>
-                     )}
-                   </Button>
-                 </div>
+                {/* Sorting Button with Sliding Menu */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsSortPanelOpen(!isSortPanelOpen)}
+                  className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 flex items-center space-x-2 w-full sm:w-auto justify-center"
+                >
+                  <List className="h-4 w-4 mr-2" />
+                  <span className="hidden sm:inline">
+                    {sortBy === 'price' && sortOrder === 'asc' && 'Price (Low to High)'}
+                    {sortBy === 'price' && sortOrder === 'desc' && 'Price (High to Low)'}
+                    {sortBy === 'carat' && sortOrder === 'asc' && 'Carat (Low to High)'}
+                    {sortBy === 'carat' && sortOrder === 'desc' && 'Carat (High to Low)'}
+                    {sortBy === 'shape' && sortOrder === 'asc' && 'Shape (A to Z)'}
+                    {sortBy === 'shape' && sortOrder === 'desc' && 'Shape (Z to A)'}
+                    {sortBy === 'clarity' && sortOrder === 'asc' && 'Clarity (A to Z)'}
+                    {sortBy === 'clarity' && sortOrder === 'desc' && 'Clarity (Z to A)'}
+                    {sortBy === 'color' && sortOrder === 'asc' && 'Color (A to Z)'}
+                    {sortBy === 'color' && sortOrder === 'desc' && 'Color (Z to A)'}
+                    {sortBy === 'date' && sortOrder === 'asc' && 'Date (Oldest First)'}
+                    {sortBy === 'date' && sortOrder === 'desc' && 'Date (Newest First)'}
+                    {sortBy === 'popularity' && 'Popularity'}
+                  </span>
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+                
+                {/* Change View Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleViewModeChange}
+                  className="flex flex-col items-center space-y-1 p-2 text-gray-300 hover:text-white hover:bg-gray-700 rounded-lg transition-all duration-200 w-full sm:w-auto justify-center"
+                >
+                  {viewMode === 'grid' ? <List className="w-5 h-5" /> : <Grid3X3 className="w-5 h-5" />}
+                  <span className="text-xs hidden sm:block">Change View</span>
+                </Button>
               </div>
             </div>
           </div>
@@ -756,9 +752,9 @@ export const FilteredGalleryPage: React.FC = () => {
         {/* Sorting Panel - Sliding Menu */}
         {isSortPanelOpen && (
           <div className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm">
-            <div className="container mx-auto px-4 py-4">
+            <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-white">Sort Options</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Sort Options</h3>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -769,7 +765,7 @@ export const FilteredGalleryPage: React.FC = () => {
                 </Button>
               </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2 sm:gap-3">
                 {/* Price Sorting */}
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium text-gray-300">Price</h4>
@@ -1008,22 +1004,24 @@ export const FilteredGalleryPage: React.FC = () => {
           </div>
         )}
 
-        {/* Diamond Cards Gallery View */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {sortedDiamonds.slice(0, visibleCards).map((diamond) => {
-              try {
-                return (
-                  <Card 
-                    key={diamond.id} 
-                    className="bg-gray-800 border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 interactive-hover cursor-pointer"
-                    onClick={() => handleViewDiamond(diamond.id)}
-                  >
-                    <CardContent className="p-0">
-                      {/* Diamond Image */}
-                      <div className="relative aspect-square bg-gradient-to-br from-gray-700 to-gray-800 rounded-t-lg overflow-hidden">
-                        {/* Selection Checkbox - Top Left */}
-                        <div className="absolute top-2 left-2 z-10">
+        {/* Diamond Cards View - Gallery or List */}
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8">
+          {viewMode === 'grid' ? (
+            /* Grid View - Gallery Style */
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
+              {sortedDiamonds.slice(0, visibleCards).map((diamond) => {
+                try {
+                  return (
+                    <Card 
+                      key={diamond.id} 
+                      className="bg-gray-800 border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 interactive-hover cursor-pointer"
+                      onClick={() => handleViewDiamond(diamond.id)}
+                    >
+                      <CardContent className="p-0">
+                        {/* Diamond Image */}
+                        <div className="relative aspect-square bg-gradient-to-br from-gray-700 to-gray-800 rounded-t-lg overflow-hidden">
+                                                  {/* Selection Checkbox - Top Left */}
+                        <div className="absolute top-1 sm:top-2 left-1 sm:left-2 z-10">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1031,38 +1029,38 @@ export const FilteredGalleryPage: React.FC = () => {
                               e.stopPropagation();
                               handleDiamondSelection(Number(diamond.id));
                             }}
-                            className={`w-8 h-8 p-0 rounded-full transition-all duration-200 ${
+                            className={`w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
                               selectedDiamonds.has(Number(diamond.id))
                                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                                 : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
                             }`}
                           >
-                            <CheckSquare className="w-4 h-4" />
+                            <CheckSquare className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                         </div>
 
-                        <img
-                          src={diamond.primaryImage || '/diamond-round.jpg'}
-                          alt={`${diamond.shape || 'Diamond'} diamond`}
-                          className="w-full h-full object-cover"
-                          onLoad={() => {
-                            console.log('✅ Gallery image loaded:', diamond.primaryImage?.substring(0, 50) + '...');
-                          }}
-                          onError={(e) => {
-                            console.error('❌ Gallery image failed to load:', diamond.primaryImage);
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = 'none';
-                            // Show fallback emoji
-                            const fallback = target.parentElement?.querySelector('.fallback-emoji') as HTMLElement;
-                            if (fallback) fallback.style.display = 'flex';
-                          }}
-                        />
-                        <div className="absolute inset-0 flex items-center justify-center fallback-emoji" style={{ display: 'none' }}>
-                          <div className="text-6xl">💎</div>
-                        </div>
-                        
-                        {/* Action Buttons Overlay */}
-                        <div className="absolute top-2 right-2 flex space-x-1">
+                          <img
+                            src={diamond.primaryImage || '/diamond-round.jpg'}
+                            alt={`${diamond.shape || 'Diamond'} diamond`}
+                            className="w-full h-full object-cover"
+                            onLoad={() => {
+                              console.log('✅ Gallery image loaded:', diamond.primaryImage?.substring(0, 50) + '...');
+                            }}
+                            onError={(e) => {
+                              console.error('❌ Gallery image failed to load:', diamond.primaryImage);
+                              const target = e.target as HTMLImageElement;
+                              target.style.display = 'none';
+                              // Show fallback emoji
+                              const fallback = target.parentElement?.querySelector('.fallback-emoji') as HTMLElement;
+                              if (fallback) fallback.style.display = 'flex';
+                            }}
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center fallback-emoji" style={{ display: 'none' }}>
+                            <div className="text-6xl">💎</div>
+                          </div>
+                          
+                                                  {/* Action Buttons Overlay */}
+                        <div className="absolute top-1 sm:top-2 right-1 sm:right-2 flex space-x-1">
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1070,13 +1068,13 @@ export const FilteredGalleryPage: React.FC = () => {
                               e.stopPropagation();
                               handleSaveDiamond(Number(diamond.id));
                             }}
-                            className={`w-8 h-8 p-0 rounded-full transition-all duration-200 ${
+                            className={`w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
                               savedDiamonds.has(Number(diamond.id))
                                 ? 'bg-red-500 text-white hover:bg-red-600'
                                 : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
                             }`}
                           >
-                            <Heart className="w-4 h-4" />
+                            <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                           <Button
                             variant="ghost"
@@ -1085,118 +1083,273 @@ export const FilteredGalleryPage: React.FC = () => {
                               e.stopPropagation();
                               handleAddToWishlist(Number(diamond.id));
                             }}
-                            className={`w-8 h-8 p-0 rounded-full transition-all duration-200 ${
+                            className={`w-6 h-6 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
                               wishlistDiamonds.has(Number(diamond.id))
                                 ? 'bg-blue-500 text-white hover:bg-blue-600'
                                 : 'bg-gray-800/80 text-gray-300 hover:bg-gray-700 hover:text-white'
                             }`}
                           >
-                            <Star className="w-4 h-4" />
+                            <Star className="w-3 h-3 sm:w-4 sm:h-4" />
                           </Button>
                         </div>
-                      </div>
-
-                      {/* Diamond Details */}
-                      <div className="p-4 space-y-3">
-                        {/* Diamond Specifications - Like the image */}
-                        <div className="space-y-2">
-                          {/* First Line: Shape, Carat, Color, Clarity */}
-                          <div className="text-sm text-gray-100 font-medium">
-                            {diamond.shape || 'Round'} {diamond.carat || 0}ct {diamond.color || 'N/A'} {diamond.clarity || 'N/A'}
-                          </div>
-                          
-                          {/* Second Line: Cut, Polish, Symmetry, Fluorescence */}
-                          <div className="text-sm text-gray-300">
-                            {diamond.cut || 'N/A'}.{diamond.polish || 'N/A'}.{diamond.symmetry || 'N/A'}/{diamond.fluorescence || 'NONE'}
-                          </div>
-                          
-                          {/* Third Line: Price */}
-                          <div className="text-lg font-bold text-gray-100">
-                            {formatPrice(diamond.price || '0')}
-                          </div>
-                          
-                          {/* Fourth Line: Total Price */}
-                          <div className="text-sm text-gray-400">
-                            Total Price
-                          </div>
                         </div>
 
-                        {/* Action Buttons */}
-                        <div className="flex items-center justify-between pt-2">
-                          <Button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleViewDiamond(diamond.id);
-                            }}
-                            className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 mr-2"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Details
-                          </Button>
-                          
-                          {/* Three dots menu - Like the image */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Add more options menu here
-                            }}
-                            className="w-8 h-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
-                          >
-                            <span className="text-lg">⋯</span>
-                          </Button>
+                        {/* Diamond Details */}
+                        <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+                          {/* Diamond Specifications - Like the image */}
+                          <div className="space-y-1 sm:space-y-2">
+                            {/* First Line: Shape, Carat, Color, Clarity */}
+                            <div className="text-xs sm:text-sm text-gray-100 font-medium leading-tight">
+                              {diamond.shape || 'Round'} {diamond.carat || 0}ct {diamond.color || 'N/A'} {diamond.clarity || 'N/A'}
+                            </div>
+                            
+                            {/* Second Line: Cut, Polish, Symmetry, Fluorescence */}
+                            <div className="text-xs sm:text-sm text-gray-300 leading-tight">
+                              {diamond.cut || 'N/A'}.{diamond.polish || 'N/A'}.{diamond.symmetry || 'N/A'}/{diamond.fluorescence || 'NONE'}
+                            </div>
+                            
+                            {/* Third Line: Price */}
+                            <div className="text-base sm:text-lg font-bold text-gray-100">
+                              {formatPrice(diamond.price || '0')}
+                            </div>
+                            
+                            {/* Fourth Line: Total Price */}
+                            <div className="text-xs sm:text-sm text-gray-400">
+                              Total Price
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center justify-between pt-2">
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDiamond(diamond.id);
+                              }}
+                              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 mr-2 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+                            >
+                              <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                              <span className="hidden sm:inline">View Details</span>
+                              <span className="sm:hidden">View</span>
+                            </Button>
+                            
+                            {/* Three dots menu - Like the image */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Add more options menu here
+                              }}
+                              className="w-6 h-6 sm:w-8 sm:h-8 p-0 text-gray-400 hover:text-white hover:bg-gray-700"
+                            >
+                              <span className="text-sm sm:text-lg">⋯</span>
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              } catch (error) {
-                console.error('❌ Error rendering diamond card:', error, diamond);
-                return (
-                  <Card key={diamond.id} className="bg-gray-800 border-gray-700">
-                    <CardContent className="p-4">
-                      <div className="text-center text-gray-400">
-                        <div className="text-4xl mb-2">💎</div>
-                        <p>Error loading diamond</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              }
-            })}
-          </div>
+                      </CardContent>
+                    </Card>
+                  );
+                } catch (error) {
+                  console.error('❌ Error rendering diamond card:', error, diamond);
+                  return (
+                    <Card key={diamond.id} className="bg-gray-800 border-gray-700">
+                      <CardContent className="p-4">
+                        <div className="text-center text-gray-400">
+                          <div className="text-4xl mb-2">💎</div>
+                          <p>Error loading diamond</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+              })}
+            </div>
+          ) : (
+            /* List View - Diamond Details Style */
+            <div className="space-y-3 sm:space-y-4">
+              {sortedDiamonds.slice(0, visibleCards).map((diamond) => {
+                try {
+                  return (
+                    <Card 
+                      key={diamond.id} 
+                      className="bg-gray-800 border-gray-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 interactive-hover cursor-pointer"
+                      onClick={() => handleViewDiamond(diamond.id)}
+                    >
+                      <CardContent className="p-3 sm:p-4 lg:p-6">
+                        <div className="flex flex-col sm:flex-row sm:items-center space-y-3 sm:space-y-0 sm:space-x-4 lg:space-x-6">
+                          {/* Diamond Image */}
+                          <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-gray-700 to-gray-800 rounded-lg overflow-hidden flex-shrink-0 mx-auto sm:mx-0">
+                            <img
+                              src={diamond.primaryImage || '/diamond-round.jpg'}
+                              alt={`${diamond.shape || 'Diamond'} diamond`}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = 'none';
+                                const fallback = target.parentElement?.querySelector('.fallback-emoji') as HTMLElement;
+                                if (fallback) fallback.style.display = 'flex';
+                              }}
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center fallback-emoji" style={{ display: 'none' }}>
+                              <div className="text-xl sm:text-2xl">💎</div>
+                            </div>
+                          </div>
+
+                          {/* Diamond Information */}
+                          <div className="flex-1 min-w-0 text-center sm:text-left">
+                            <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between space-y-3 lg:space-y-0">
+                              <div className="flex-1">
+                                <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
+                                  {diamond.shape || 'Round'} Diamond
+                                </h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 text-xs sm:text-sm">
+                                  <div>
+                                    <span className="text-gray-400">Carat:</span>
+                                    <span className="text-white ml-1 sm:ml-2">{diamond.carat || 0}ct</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Color:</span>
+                                    <span className="text-white ml-1 sm:ml-2">{diamond.color || 'N/A'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Clarity:</span>
+                                    <span className="text-white ml-1 sm:ml-2">{diamond.clarity || 'N/A'}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-400">Cut:</span>
+                                    <span className="text-white ml-1 sm:ml-2">{diamond.cut || 'N/A'}</span>
+                                  </div>
+                                </div>
+                                <div className="mt-2 sm:mt-3 text-xs sm:text-sm text-gray-300">
+                                  {diamond.polish || 'N/A'}.{diamond.symmetry || 'N/A'}/{diamond.fluorescence || 'NONE'}
+                                </div>
+                              </div>
+                              
+                              <div className="text-center lg:text-right lg:ml-6">
+                                <div className="text-xl sm:text-2xl font-bold text-white mb-1 sm:mb-2">
+                                  {formatPrice(diamond.price || '0')}
+                                </div>
+                                <div className="text-xs sm:text-sm text-gray-400">Total Price</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Action Buttons */}
+                          <div className="flex items-center justify-center sm:justify-end space-x-2 flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDiamondSelection(Number(diamond.id));
+                              }}
+                              className={`w-7 h-7 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
+                                selectedDiamonds.has(Number(diamond.id))
+                                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                              }`}
+                            >
+                              <CheckSquare className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSaveDiamond(Number(diamond.id));
+                              }}
+                              className={`w-7 h-7 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
+                                savedDiamonds.has(Number(diamond.id))
+                                  ? 'bg-red-500 text-white hover:bg-red-600'
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                              }`}
+                            >
+                              <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </Button>
+                            
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleAddToWishlist(Number(diamond.id));
+                              }}
+                              className={`w-7 h-7 sm:w-8 sm:h-8 p-0 rounded-full transition-all duration-200 ${
+                                wishlistDiamonds.has(Number(diamond.id))
+                                  ? 'bg-blue-500 text-white hover:bg-blue-600'
+                                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                              }`}
+                            >
+                              <Star className="w-3 h-3 sm:w-4 sm:h-4" />
+                            </Button>
+                            
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewDiamond(diamond.id);
+                              }}
+                              className="bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+                            >
+                              <Eye className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                              <span className="hidden sm:inline">View Details</span>
+                              <span className="sm:hidden">View</span>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                } catch (error) {
+                  console.error('❌ Error rendering diamond list item:', error, diamond);
+                  return (
+                    <Card key={diamond.id} className="bg-gray-800 border-gray-700">
+                      <CardContent className="p-4">
+                        <div className="text-center text-gray-400">
+                          <div className="text-2xl mb-2">💎</div>
+                          <p>Error loading diamond</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                }
+              })}
+            </div>
+          )}
 
           {/* Load More Button */}
           {visibleCards < sortedDiamonds.length && (
-            <div className="text-center mt-8">
+            <div className="text-center mt-6 sm:mt-8">
               <Button
                 onClick={() => setVisibleCards(prev => Math.min(prev + 8, sortedDiamonds.length))}
                 variant="outline"
-                className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105"
+                className="border-gray-600 text-white hover:bg-gray-700 hover:text-white bg-gray-700 transition-all duration-200 transform hover:scale-105 w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3"
               >
-                Load More Diamonds ({visibleCards} of {sortedDiamonds.length})
+                <span className="text-sm sm:text-base">
+                  Load More Diamonds ({visibleCards} of {sortedDiamonds.length})
+                </span>
               </Button>
             </div>
           )}
           
           {/* Loading indicator */}
           {isLoadingMore && (
-            <div className="text-center mt-8 py-4">
+            <div className="text-center mt-6 sm:mt-8 py-4">
               <div className="inline-flex items-center space-x-2 text-gray-400">
-                <Loader2 className="h-5 w-5 animate-spin" />
-                <span className="font-montserrat">Loading more diamonds...</span>
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+                <span className="text-sm sm:text-base font-montserrat">Loading more diamonds...</span>
               </div>
             </div>
           )}
           
           {/* End of diamonds message */}
           {visibleCards >= sortedDiamonds.length && sortedDiamonds.length > 0 && !isLoadingMore && (
-            <div className="text-center mt-8 py-8">
+            <div className="text-center mt-6 sm:mt-8 py-6 sm:py-8">
               <div className="text-gray-400 font-montserrat">
-                <div className="text-2xl mb-2">✨</div>
-                <p>You've reached the end of our diamond collection!</p>
-                <p className="text-sm mt-2">Showing all {sortedDiamonds.length} diamonds</p>
+                <div className="text-xl sm:text-2xl mb-2">✨</div>
+                <p className="text-sm sm:text-base">You've reached the end of our diamond collection!</p>
+                <p className="text-xs sm:text-sm mt-2">Showing all {sortedDiamonds.length} diamonds</p>
               </div>
             </div>
           )}
@@ -1206,11 +1359,7 @@ export const FilteredGalleryPage: React.FC = () => {
       {/* Filter Panel */}
       <FilterPanel />
 
-      {/* Category Management Modal */}
-      <CategoryManagement
-        isOpen={isCategoryManagementOpen}
-        onClose={() => setIsCategoryManagementOpen(false)}
-      />
+
     </div>
   );
 }; 
